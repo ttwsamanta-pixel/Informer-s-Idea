@@ -3,24 +3,14 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { readPreference, writePreference } from '@/hooks/use-preferences';
-import {
-  Search,
-  Moon,
-  Sun,
-  Menu,
-  X,
-  Grid2X2,
-  ChevronDown,
-  ArrowUpRight,
-} from 'lucide-react';
-import { Logo } from '@/components/layout/logo';
-import { categories } from '@/config/categories';
+import { Search, X, ArrowUpRight } from 'lucide-react';
+import { HeaderNavigation } from './header-navigation';
+
 import { searchTools, tools } from '@/config/tools';
 import { ToolIcon } from '@/components/ui/icon';
 export function Header() {
   const router = useRouter();
   const [dark, setDark] = useState(false);
-  const [menu, setMenu] = useState(false);
   const [query, setQuery] = useState('');
   const dialog = useRef<HTMLDialogElement>(null);
   useEffect(() => {
@@ -49,107 +39,11 @@ export function Header() {
   ).slice(0, 12);
   return (
     <>
-      <header className="site-header">
-        <div className="container nav-row">
-          <Logo />
-          <nav className="desktop-nav" aria-label="Main navigation">
-            <Link href="/">Home</Link>
-            {['image', 'pdf'].map((id) => (
-              <details className="nav-dropdown" key={id}>
-                <summary>
-                  {id === 'image' ? 'Image' : 'PDF'} Tools{' '}
-                  <ChevronDown size={13} />
-                </summary>
-                <div className="dropdown-panel">
-                  {tools
-                    .filter((t) => t.category === id)
-                    .slice(0, 6)
-                    .map((t) => (
-                      <Link href={'/tools/' + t.slug} key={t.slug}>
-                        {t.name}
-                      </Link>
-                    ))}
-                  <Link href={'/' + id + '-tools'}>
-                    Explore all {id} tools <ArrowUpRight size={14} />
-                  </Link>
-                </div>
-              </details>
-            ))}
-            <details className="nav-dropdown">
-              <summary>
-                More Tools <ChevronDown size={13} />
-              </summary>
-              <div className="dropdown-panel">
-                {categories
-                  .filter((c) => !['image', 'pdf'].includes(c.id))
-                  .map((c) => (
-                    <Link href={'/' + c.slug} key={c.id}>
-                      {c.name}
-                    </Link>
-                  ))}
-              </div>
-            </details>
-            <Link href="/passport-tools">Passport</Link>
-            <Link href="/ocr-tools">OCR</Link>
-            <Link href="/qr-tools">QR</Link>
-            <Link href="/blog">Blog</Link>
-            <Link href="/about">About</Link>
-            <Link href="/contact">Contact</Link>
-          </nav>
-          <div className="nav-actions">
-            <button
-              className="icon-button"
-              aria-label="Search tools"
-              onClick={() => dialog.current?.showModal()}
-            >
-              <Search size={19} />
-            </button>
-            <button
-              className="icon-button"
-              aria-label="Toggle color theme"
-              onClick={toggle}
-            >
-              {dark ? <Sun size={19} /> : <Moon size={19} />}
-            </button>
-            <Link href="/all-tools" className="button primary nav-cta">
-              <Grid2X2 size={16} />
-              All Tools
-            </Link>
-            <button
-              className="icon-button menu-toggle"
-              aria-label={menu ? 'Close navigation' : 'Open navigation'}
-              aria-expanded={menu}
-              onClick={() => setMenu(!menu)}
-            >
-              {menu ? <X /> : <Menu />}
-            </button>
-          </div>
-        </div>
-        {menu && (
-          <nav className="mobile-nav" aria-label="Mobile navigation">
-            <button className="button secondary full-width" onClick={toggle}>
-              {dark ? 'Switch to light theme' : 'Switch to dark theme'}
-            </button>
-            {[
-              { slug: '', name: 'Home' },
-              ...categories,
-              { slug: 'all-tools', name: 'All Tools' },
-              { slug: 'blog', name: 'Blog' },
-              { slug: 'about', name: 'About' },
-              { slug: 'contact', name: 'Contact' },
-            ].map((c) => (
-              <Link
-                key={c.slug}
-                href={'/' + c.slug}
-                onClick={() => setMenu(false)}
-              >
-                {c.name}
-                <ArrowUpRight size={16} />
-              </Link>
-            ))}
-          </nav>
-        )}
-      </header>
+      <HeaderNavigation
+        dark={dark}
+        onTheme={toggle}
+        onSearch={() => dialog.current?.showModal()}
+      />
       <dialog
         ref={dialog}
         className="search-dialog"

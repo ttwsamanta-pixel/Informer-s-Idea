@@ -1,6 +1,8 @@
 'use client';
 import { useState } from 'react';
 import { CropPreview } from './crop-preview';
+import { resizePresets } from '@/config/resize-presets';
+import { ToolIcon } from '@/components/ui/icon';
 import type { ToolDefinition } from '@/types/tools';
 import {
   defaultImageSettings,
@@ -34,6 +36,7 @@ export default function FileWorkspace({ tool }: { tool: ToolDefinition }) {
   const [dimensions, setDimensions] = useState('');
   const [aspect, setAspect] = useState(1);
   const [locked, setLocked] = useState(true);
+  const [preset, setPreset] = useState<string | null>(null);
   const kind =
     tool.processor === 'pdf' && tool.operation !== 'from-image'
       ? 'pdf'
@@ -43,7 +46,8 @@ export default function FileWorkspace({ tool }: { tool: ToolDefinition }) {
   const update = <K extends keyof ImageSettings>(
     key: K,
     value: ImageSettings[K],
-  ) =>
+  ) => {
+    if (key === 'width' || key === 'height') setPreset(null);
     setImage((prev) => ({
       ...prev,
       [key]: value,
@@ -53,6 +57,7 @@ export default function FileWorkspace({ tool }: { tool: ToolDefinition }) {
           ? { width: Math.max(1, Math.round(Number(value) * aspect)) }
           : {}),
     }));
+  };
   const updatePdf = <K extends keyof PDFSettings>(
     key: K,
     value: PDFSettings[K],
@@ -72,6 +77,7 @@ export default function FileWorkspace({ tool }: { tool: ToolDefinition }) {
         isImage || op === 'merge' || op === 'from-image' ? 20 : 1,
       );
       setFiles(selection);
+      setPreset(null);
       if (kind === 'image' && selection[0]) {
         const b = await createImageBitmap(selection[0]);
         setAspect(b.width / b.height);
@@ -382,6 +388,54 @@ export default function FileWorkspace({ tool }: { tool: ToolDefinition }) {
                     onChange={(e) => update('quality', Number(e.target.value))}
                   />
                 </Field>
+              )}
+              {op === 'resize' && (
+                <section className="resize-presets" aria-label="Resize presets">
+                  <div className="preset-heading">
+                    <h3>Quick size presets</h3>
+                    <span>ONE CLICK. EXACT DIMENSIONS.</span>
+                  </div>
+                  <p>Choose a starting size for your photo or social post.</p>
+                  <div className="preset-grid">
+                    {resizePresets.map((item) => (
+                      <button
+                        type="button"
+                        key={item.id}
+                        disabled={!files.length}
+                        aria-pressed={preset === item.id && files.length > 0}
+                        className="resize-preset"
+                        onClick={() => {
+                          setImage((current) => ({
+                            ...current,
+                            width: item.width,
+                            height: item.height,
+                          }));
+                          setLocked(false);
+                          setPreset(item.id);
+                          setResults([]);
+                          setError('');
+                        }}
+                      >
+                        <ToolIcon name={item.icon} size={18} />
+                        <strong>{item.name}</strong>
+                        <small>
+                          {item.width} &times; {item.height} px
+                        </small>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="preset-hint" role="status">
+                    {!files.length
+                      ? 'Upload an image to enable presets.'
+                      : preset
+                        ? 'Preset applied. Both dimensions are set; aspect ratio is unlocked.'
+                        : 'Choose a preset or enter custom dimensions above.'}
+                  </p>
+                  <small className="preset-requirements">
+                    Starting sizes only. Check your application requirements
+                    before submitting.
+                  </small>
+                </section>
               )}
               {op === 'compress' && (
                 <Field

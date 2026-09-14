@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ShieldCheck, ArrowUpRight } from 'lucide-react';
 import { Logo } from './logo';
 import { categories } from '@/config/categories';
+import { channels } from '@/config/channels';
 export function Footer() {
   return (
     <footer className="site-footer">
@@ -17,6 +18,23 @@ export function Footer() {
           <span className="footer-privacy">
             <ShieldCheck size={16} /> Your files stay yours.
           </span>
+          <div className="footer-channels" aria-label="YouTube channels">
+            {channels.map((channel) => (
+              <a
+                href={channel.url}
+                key={channel.handle}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img src={channel.logo} width={30} height={30} alt="" />
+                <span>
+                  {channel.name}
+                  <small>Watch on YouTube</small>
+                </span>
+                <ArrowUpRight size={13} />
+              </a>
+            ))}
+          </div>
         </div>
         <div>
           <h3>Quick links</h3>

@@ -25,10 +25,10 @@ For a reproducible install use `npm ci`. The postinstall script copies the match
 
 - 80 working tools and format/preset variants across eight categories. The full inventory is in [docs/TOOLS.md](docs/TOOLS.md), with one URL for each tool.
 - Responsive homepage matching the reference's composition, category cards, browser illustration, gradient call-to-action, popular tools, guides, and dark footer.
-- Desktop dropdowns, mobile navigation, keyboard-search dialog (Ctrl/Cmd + K), instant directory search and filters.
+- Hover mega menus with icon-based tool groups, automatic dismissal, keyboard support and expandable mobile navigation. All Tools lives in the header and footer; a highlighted YouTube menu links both channels using local copies of their channel logos. Keyboard-search dialog (Ctrl/Cmd + K), instant directory search and filters.
 - Dark mode, favorites, and recent tools stored locally. User files are never stored in localStorage.
 - Drag-and-drop upload, content/type/extension validation, per-file limits, image previews, settings, real progress where available, file download and batch ZIP export.
-- Image cropping with a draggable preview, resize with aspect locking, compression, effects, and conversion.
+- Image cropping with a draggable preview, resize with aspect locking and six one-click presets (Passport, PAN, Voter ID, DL, WhatsApp and Instagram), compression, effects, and conversion. Presets use the dimensions supplied in the design reference, set both dimensions and unlock the original ratio; they do not certify official application compliance.
 - PDF assembly, page operations, raster export, document information and standard metadata clearing.
 - Passport crop positioning, exact mm-to-pixel sizing, embedded DPI metadata, and physically sized A4 PDF sheets.
 - Tesseract OCR, genuine QR generation/scanning, on-device background removal, and everyday text/color/number utilities.
@@ -75,7 +75,7 @@ npm run build
 npm test
 ```
 
-Playwright starts the production server automatically. Tests create real images and PDFs and inspect downloaded output dimensions, page counts, DPI and QR decoding. Layout checks cover 320, 375, 390, 430, 768, 1024, 1280, 1440 and 1920 px. OCR and AI tests require access to their public model assets. Screenshots and reports are written to ignored `test-results` and `playwright-report` directories.
+Playwright starts an isolated production server on port 3100 automatically (override with PLAYWRIGHT_PORT), so a development server on port 3000 does not affect tests. Tests create real images and PDFs and inspect downloaded output dimensions, page counts, DPI and QR decoding. Layout checks cover 320, 375, 390, 430, 768, 1024, 1280, 1440 and 1920 px. OCR and AI tests require access to their public model assets. Screenshots and reports are written to ignored `test-results` and `playwright-report` directories.
 
 ## Third-party licensing
 
