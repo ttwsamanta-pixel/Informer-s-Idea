@@ -61,6 +61,7 @@ type PageData = {
   width: number;
   height: number;
   items: Item[];
+  words: Item[];
   png: Uint8Array;
   count: number;
 };
@@ -109,6 +110,9 @@ export default function VisualPDFEditor() {
   const [cursor, setCursor] = useState(0);
   const [draft, setDraft] = useState<Item | null>(null);
   const [mode, setMode] = useState<string>('select');
+  const [textSelection, setTextSelection] = useState<'words' | 'lines'>(
+    'words',
+  );
   const [zoom, setZoom] = useState(100);
   const [busy, setBusy] = useState(false);
   const [rendering, setRendering] = useState(false);
@@ -229,7 +233,7 @@ export default function VisualPDFEditor() {
       setCursor(0);
       setDraft(null);
       setMode('select');
-      setStatus('Select any detected text line or image to edit it.');
+      setStatus('Select detected text or an image to edit it.');
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -259,8 +263,9 @@ export default function VisualPDFEditor() {
     });
     setMode('select');
   };
-  const chooseImage = async (next: File | undefined) => {
+  const chooseImage = async (next: File | undefined, asSignature = false) => {
     if (!next) return;
+    setError('');
     try {
       await validateFiles([next], 'image', 1);
       if (next.size > 8 * 1024 * 1024)
@@ -272,7 +277,28 @@ export default function VisualPDFEditor() {
       canvas.getContext('2d')!.drawImage(bitmap, 0, 0);
       bitmap.close();
       const data = canvas.toDataURL('image/png');
-      if (draft?.kind === 'image') setDraft({ ...draft, data });
+      if (asSignature) {
+        const width = Math.min(200, (info?.width || 300) - 72);
+        const height = Math.min(
+          (width * canvas.height) / canvas.width,
+          (info?.height || 400) - 72,
+        );
+        setDraft({
+          id: crypto.randomUUID(),
+          page,
+          kind: 'image',
+          x: 36,
+          y: 36,
+          width: (height * canvas.width) / canvas.height,
+          height,
+          data,
+        });
+        setMode('select');
+        setSign(false);
+        setStatus(
+          'Signature uploaded. Drag it into position and select Apply object.',
+        );
+      } else if (draft?.kind === 'image') setDraft({ ...draft, data });
       else add('image', 36, 36, data);
     } catch (e) {
       setError((e as Error).message);
@@ -387,9 +413,29 @@ export default function VisualPDFEditor() {
       setBusy(false);
     }
   };
+  const sourceItems = info
+    ? textSelection === 'words'
+      ? [...info.items.filter((item) => item.kind !== 'text'), ...info.words]
+      : info.items
+    : [];
   const items = info
     ? [
-        ...info.items.filter((item) => !edits.some((e) => e.id === item.id)),
+        ...sourceItems.filter(
+          (item) =>
+            !edits.some(
+              (e) =>
+                e.id === item.id ||
+                (e.page === item.page &&
+                  e.kind === item.kind &&
+                  e.originalRect &&
+                  Math.min(item.x + item.width, e.originalRect[2]) -
+                    Math.max(item.x, e.originalRect[0]) >
+                    0.1 &&
+                  Math.min(item.y + item.height, e.originalRect[3]) -
+                    Math.max(item.y, e.originalRect[1]) >
+                    0.1),
+            ),
+        ),
         ...edits.filter((e) => e.page === page && !e.removed),
       ]
     : [];
@@ -415,7 +461,7 @@ export default function VisualPDFEditor() {
           <FileText size={46} />
           <h3>Start with your PDF</h3>
           <p>
-            Click a text line or image to change it. Add something new anywhere.
+            Click a word, line or image to change it. Add something new anywhere.
           </p>
           <UploadZone
             accept="application/pdf"
@@ -543,6 +589,20 @@ export default function VisualPDFEditor() {
             </aside>
             <div className="editor-canvas-area">
               <div className="editor-viewbar">
+                <label className="editor-selection">
+                  Select text
+                  <select
+                    aria-label="Text selection"
+                    value={textSelection}
+                    onChange={(e) => {
+                      setDraft(null);
+                      setTextSelection(e.target.value as 'words' | 'lines');
+                    }}
+                  >
+                    <option value="words">Individual words</option>
+                    <option value="lines">Whole lines</option>
+                  </select>
+                </label>
                 <span>
                   Page {page + 1} of {info?.count}
                 </span>
@@ -661,8 +721,8 @@ export default function VisualPDFEditor() {
                   <div className="editor-tip">
                     <strong>A few helpful details</strong>
                     <p>
-                      Text is edited by line. Resize the box for longer text;
-                      paragraphs do not automatically reflow.
+                      Choose individual words or whole lines. Resize the box for
+                      longer text; paragraphs do not automatically reflow.
                     </p>
                     <p>
                       Replacement text uses the selected font. Embedded fonts
@@ -824,7 +884,7 @@ export default function VisualPDFEditor() {
           className="editor-modal"
           role="dialog"
           aria-modal="true"
-          aria-label="Draw your signature"
+          aria-label="Draw or upload your signature"
         >
           <div>
             <button
@@ -835,6 +895,25 @@ export default function VisualPDFEditor() {
               <X size={18} />
             </button>
             <h3>Your signature</h3>
+            <ErrorMessage message={error} />
+            <label className="button secondary signature-upload">
+              {' '}
+              <ImagePlus size={16} />
+              Upload signature
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                aria-label="Upload signature image"
+                onChange={(e) => {
+                  void chooseImage(e.target.files?.[0], true);
+                  e.target.value = '';
+                }}
+              />
+            </label>
+            <p className="tool-note">
+              PNG, JPG or WebP, up to 8 MB. A transparent PNG blends best with
+              your page.
+            </p>
             <p>Draw with your mouse or finger.</p>
             <canvas
               ref={signature}

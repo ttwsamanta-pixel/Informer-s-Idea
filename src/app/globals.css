@@ -3037,6 +3037,41 @@ progress {
 }
 
 /* Visual PDF editor */
+.editor-viewbar {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.editor-selection {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+}
+.editor-selection select {
+  width: auto;
+  padding: 7px;
+  font-size: 11px;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+.signature-upload {
+  position: relative;
+  margin-top: 14px;
+  cursor: pointer;
+}
+.signature-upload input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  cursor: pointer;
+}
+.signature-upload:focus-within {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
 .visual-pdf-editor {
   border: 1px solid var(--border);
   border-radius: 20px;

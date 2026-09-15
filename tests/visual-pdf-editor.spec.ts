@@ -58,6 +58,7 @@ async function open(page: Page, rotate = false) {
   await page
     .locator('.editor-welcome input[type=file]')
     .setInputFiles(await fixture(page, rotate));
+  await page.getByLabel('Text selection').selectOption('lines');
   await expect(
     page.getByRole('button', {
       name: 'Edit existing text: Original headline',
@@ -245,6 +246,88 @@ test('rotated pages retain their dimensions and edit in displayed coordinates', 
   const doc = new mupdf.PDFDocument(output);
   const p = doc.loadPage(0);
   expect(p.getBounds()).toEqual([0, 0, 650, 500]);
+  p.destroy();
+  doc.destroy();
+});
+
+test('individual word editing preserves the other words in the same line', async ({
+  page,
+}) => {
+  await open(page);
+  await page.getByLabel('Text selection').selectOption('words');
+  await page
+    .getByRole('button', { name: 'Edit existing text: Original', exact: true })
+    .click();
+  await page.getByLabel('Text content').fill('Fresh');
+  await page.getByRole('button', { name: 'Apply object', exact: true }).click();
+  let result = contents(await exported(page));
+  expect(result[0]).toContain('Fresh');
+  expect(result[0]).not.toContain('Original');
+  expect(result[0]).toContain('headline');
+  expect(result[0]).toContain('Keep this neighboring line');
+  await page.getByLabel('Text selection').selectOption('lines');
+  await expect(
+    page.getByRole('button', {
+      name: 'Edit existing text: Original headline',
+      exact: true,
+    }),
+  ).toHaveCount(0);
+  await page.getByLabel('Text selection').selectOption('words');
+  await page
+    .getByRole('button', { name: 'Edit existing text: headline', exact: true })
+    .click();
+  await page.getByLabel('Text content').fill('heading');
+  await page.getByRole('button', { name: 'Apply object', exact: true }).click();
+  result = contents(await exported(page));
+  expect(result[0]).toContain('Fresh');
+  expect(result[0]).toContain('heading');
+  expect(result[0]).not.toContain('headline');
+  expect(result[1]).toContain('Page two untouched');
+});
+
+test('uploaded signature keeps its aspect ratio and is embedded in the downloaded PDF', async ({
+  page,
+}) => {
+  await open(page);
+  await page.getByRole('button', { name: 'Sign', exact: true }).click();
+  const buffer = Buffer.from(
+    await page.evaluate(() => {
+      const c = document.createElement('canvas');
+      c.width = 500;
+      c.height = 100;
+      const x = c.getContext('2d')!;
+      x.strokeStyle = '#112244';
+      x.lineWidth = 4;
+      x.beginPath();
+      x.moveTo(20, 70);
+      x.lineTo(140, 20);
+      x.lineTo(300, 60);
+      x.stroke();
+      return c.toDataURL().split(',')[1];
+    }),
+    'base64',
+  );
+  await page
+    .getByLabel('Upload signature image')
+    .setInputFiles({ name: 'signature.png', mimeType: 'image/png', buffer });
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByLabel('Width (pt)')).toHaveValue('200');
+  await expect(page.getByLabel('Height (pt)')).toHaveValue('40');
+  await page.getByRole('button', { name: 'Apply object', exact: true }).click();
+  const doc = new mupdf.PDFDocument(await exported(page));
+  const p = doc.loadPage(0);
+  const s = p.toStructuredText('preserve-images');
+  const boxes: number[][] = [];
+  s.walk({
+    onImageBlock(bbox) {
+      boxes.push(bbox);
+    },
+  });
+  expect(boxes).toHaveLength(2);
+  expect(
+    boxes.some(([x, y, r, b]) => Math.abs((r - x) / (b - y) - 5) < 0.01),
+  ).toBe(true);
+  s.destroy();
   p.destroy();
   doc.destroy();
 });

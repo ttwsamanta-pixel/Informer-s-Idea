@@ -16,8 +16,13 @@ function inspect(doc, number) {
   const page = doc.loadPage(number);
   const bounds = page.getBounds();
   const items = [];
+  const words = [];
   const structured = page.toStructuredText('preserve-images');
-  let line;
+  let line, word;
+  const finishWord = () => {
+    if (word) words.push(word);
+    word = null;
+  };
   structured.walk({
     beginLine(bbox) {
       line = {
@@ -57,8 +62,36 @@ function inspect(doc, number) {
               .join('');
       }
       line.text += c;
+      if (/\s/u.test(c)) finishWord();
+      else {
+        const xs = [quad[0], quad[2], quad[4], quad[6]];
+        const ys = [quad[1], quad[3], quad[5], quad[7]];
+        const x = Math.min(...xs),
+          y = Math.min(...ys),
+          right = Math.max(...xs),
+          bottom = Math.max(...ys);
+        if (!word)
+          word = {
+            ...line,
+            text: c,
+            x,
+            y,
+            width: right - x,
+            height: bottom - y,
+          };
+        else {
+          const maxX = Math.max(word.x + word.width, right),
+            maxY = Math.max(word.y + word.height, bottom);
+          word.x = Math.min(word.x, x);
+          word.y = Math.min(word.y, y);
+          word.width = maxX - word.x;
+          word.height = maxY - word.y;
+          word.text += c;
+        }
+      }
     },
     endLine() {
+      finishWord();
       if (line.text.trim()) items.push(line);
     },
     onImageBlock(bbox) {
@@ -76,6 +109,13 @@ function inspect(doc, number) {
   return {
     width: bounds[2] - bounds[0],
     height: bounds[3] - bounds[1],
+    words: words.map((item, i) => ({
+      ...item,
+      id: `${number}-word-${i}`,
+      sourceId: `${number}-word-${i}`,
+      page: number,
+      originalRect: rect(item),
+    })),
     items: items.map((item, i) => ({
       ...item,
       id: `${number}-${i}`,
