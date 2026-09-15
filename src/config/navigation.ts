@@ -86,7 +86,15 @@ export function menuGroups(menu: NavigationMenu): MenuGroup[] {
             },
             {
               title: 'Finishing & details',
-              operations: ['numbers', 'watermark', 'metadata', 'clean', 'size'],
+              operations: [
+                'compress',
+                'edit',
+                'numbers',
+                'watermark',
+                'metadata',
+                'clean',
+                'size',
+              ],
             },
           ];
     return definitions.map((d) => ({

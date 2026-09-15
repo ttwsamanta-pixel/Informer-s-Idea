@@ -44,7 +44,7 @@ test('hover mega menus contain icons and close on leave, switch, scroll, and nav
   await expect(page.locator('#menu-pdf')).toBeVisible();
   await expect(page.locator('#menu-image')).toHaveCount(0);
   await nav.getByRole('button', { name: 'All Tools', exact: true }).hover();
-  await expect(page.locator('#menu-all a[href^="/tools/"]')).toHaveCount(80);
+  await expect(page.locator('#menu-all a[href^="/tools/"]')).toHaveCount(82);
   await page.locator('#menu-all').evaluate((el) => {
     el.scrollTop = 150;
   });
@@ -52,6 +52,11 @@ test('hover mega menus contain icons and close on leave, switch, scroll, and nav
   await page.mouse.wheel(0, 500);
   await page.evaluate(() => window.scrollTo(0, 500));
   await expect(page.locator('#menu-all')).toHaveCount(0);
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(500);
+  // Return to the top before Playwright scrolls the sticky trigger into view.
+  // Otherwise that automatic scroll correctly dismisses the newly opened menu.
+  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   await image.hover();
   await page
     .locator('#menu-image')

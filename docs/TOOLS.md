@@ -1,6 +1,6 @@
 # Working tools
 
-The registry publishes 80 tools and useful format/preset variants. All processing happens locally in the browser.
+The registry publishes 82 tools and useful format/preset variants. All processing happens locally in the browser.
 
 ## IMAGE (15)
 
@@ -33,27 +33,29 @@ The registry publishes 80 tools and useful format/preset variants. All processin
 | WebP to JPG | `/tools/webp-to-jpg` | Make WebP images widely compatible. |
 | WebP to PNG | `/tools/webp-to-png` | Convert WebP images to PNG.         |
 
-## PDF (17)
+## PDF (19)
 
-| Tool                  | Route                          | Function                                    |
-| --------------------- | ------------------------------ | ------------------------------------------- |
-| Merge PDF             | `/tools/merge-pdf`             | Bring multiple PDFs together in one file.   |
-| Split PDF             | `/tools/split-pdf`             | Save selected pages as a new PDF.           |
-| Rotate PDF            | `/tools/rotate-pdf`            | Rotate selected pages of a PDF.             |
-| Delete PDF Pages      | `/tools/delete-pdf-pages`      | Remove unwanted pages from your PDF.        |
-| Extract PDF Pages     | `/tools/extract-pdf-pages`     | Keep only the pages you need.               |
-| Reverse PDF Pages     | `/tools/reverse-pdf-pages`     | Reverse the order of every page.            |
-| Reorder PDF Pages     | `/tools/reorder-pdf-pages`     | Put pages into your preferred order.        |
-| PDF to JPG            | `/tools/pdf-to-jpg`            | Turn PDF pages into high-quality images.    |
-| PDF to PNG            | `/tools/pdf-to-png`            | Export PDF pages as lossless PNG images.    |
-| Image to PDF          | `/tools/image-to-pdf`          | Turn your images into a PDF document.       |
-| JPG to PDF            | `/tools/jpg-to-pdf`            | Combine JPG photos in a PDF.                |
-| PNG to PDF            | `/tools/png-to-pdf`            | Put PNG images into a PDF.                  |
-| Add Page Numbers      | `/tools/add-page-numbers`      | Number the pages of your PDF.               |
-| PDF Watermark         | `/tools/pdf-watermark`         | Add a text watermark to every page.         |
-| PDF Metadata Viewer   | `/tools/pdf-metadata-viewer`   | Inspect document properties.                |
-| Remove PDF Metadata   | `/tools/remove-pdf-metadata`   | Clear standard document information fields. |
-| PDF Page Size Checker | `/tools/pdf-page-size-checker` | Check the dimensions of every PDF page.     |
+| Tool                  | Route                          | Function                                                    |
+| --------------------- | ------------------------------ | ----------------------------------------------------------- |
+| Compress PDF          | `/tools/compress-pdf`          | Lossless optimization or image-based compression for scans. |
+| Edit PDF              | `/tools/edit-pdf`              | Add text with position, size, color and PDF preview.        |
+| Merge PDF             | `/tools/merge-pdf`             | Bring multiple PDFs together in one file.                   |
+| Split PDF             | `/tools/split-pdf`             | Save selected pages as a new PDF.                           |
+| Rotate PDF            | `/tools/rotate-pdf`            | Rotate selected pages of a PDF.                             |
+| Delete PDF Pages      | `/tools/delete-pdf-pages`      | Remove unwanted pages from your PDF.                        |
+| Extract PDF Pages     | `/tools/extract-pdf-pages`     | Keep only the pages you need.                               |
+| Reverse PDF Pages     | `/tools/reverse-pdf-pages`     | Reverse the order of every page.                            |
+| Reorder PDF Pages     | `/tools/reorder-pdf-pages`     | Put pages into your preferred order.                        |
+| PDF to JPG            | `/tools/pdf-to-jpg`            | Turn PDF pages into high-quality images.                    |
+| PDF to PNG            | `/tools/pdf-to-png`            | Export PDF pages as lossless PNG images.                    |
+| Image to PDF          | `/tools/image-to-pdf`          | Turn your images into a PDF document.                       |
+| JPG to PDF            | `/tools/jpg-to-pdf`            | Combine JPG photos in a PDF.                                |
+| PNG to PDF            | `/tools/png-to-pdf`            | Put PNG images into a PDF.                                  |
+| Add Page Numbers      | `/tools/add-page-numbers`      | Number the pages of your PDF.                               |
+| PDF Watermark         | `/tools/pdf-watermark`         | Add a text watermark to every page.                         |
+| PDF Metadata Viewer   | `/tools/pdf-metadata-viewer`   | Inspect document properties.                                |
+| Remove PDF Metadata   | `/tools/remove-pdf-metadata`   | Clear standard document information fields.                 |
+| PDF Page Size Checker | `/tools/pdf-page-size-checker` | Check the dimensions of every PDF page.                     |
 
 ## PASSPORT (10)
 

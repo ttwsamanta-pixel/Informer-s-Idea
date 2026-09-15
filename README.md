@@ -23,13 +23,13 @@ For a reproducible install use `npm ci`. The postinstall script copies the match
 
 ## What is included
 
-- 80 working tools and format/preset variants across eight categories. The full inventory is in [docs/TOOLS.md](docs/TOOLS.md), with one URL for each tool.
+- 82 working tools and format/preset variants across eight categories. The full inventory is in [docs/TOOLS.md](docs/TOOLS.md), with one URL for each tool.
 - Responsive homepage matching the reference's composition, category cards, browser illustration, gradient call-to-action, popular tools, guides, and dark footer.
 - Hover mega menus with icon-based tool groups, automatic dismissal, keyboard support and expandable mobile navigation. All Tools lives in the header and footer; a highlighted YouTube menu links both channels using local copies of their channel logos. Keyboard-search dialog (Ctrl/Cmd + K), instant directory search and filters.
 - Dark mode, favorites, and recent tools stored locally. User files are never stored in localStorage.
 - Drag-and-drop upload, content/type/extension validation, per-file limits, image previews, settings, real progress where available, file download and batch ZIP export.
 - Image cropping with a draggable preview, resize with aspect locking and six one-click presets (Passport, PAN, Voter ID, DL, WhatsApp and Instagram), compression, effects, and conversion. Presets use the dimensions supplied in the design reference, set both dimensions and unlock the original ratio; they do not certify official application compliance.
-- PDF assembly, page operations, raster export, document information and standard metadata clearing.
+- PDF assembly, page operations, raster export, document information and standard metadata clearing. Compress PDF offers lossless optimization or lossy image-based compression for scans; larger results return the original. Edit PDF adds basic Latin text to selected pages with position, color, font size and a paginated preview; it does not rewrite existing text. Image-based compression removes selectable text, links, forms and accessibility structure.
 - Passport crop positioning, exact mm-to-pixel sizing, embedded DPI metadata, and physically sized A4 PDF sheets.
 - Tesseract OCR, genuine QR generation/scanning, on-device background removal, and everyday text/color/number utilities.
 - About, contact, privacy, terms, disclaimer, three written guides, 404 and error pages, metadata, sitemap and robots.
@@ -59,7 +59,7 @@ Next.js, React, TypeScript, Tailwind CSS, Lucide React, browser-image-compressio
 
 ## Intentionally excluded
 
-Strong PDF compression, PDF encryption/decryption, secure redaction, HEIC/SVG input conversion, object removal, AI upscaling and remote-service AI tools are not listed as working tools. They require additional compatible implementations, heavier models, or services beyond this phase. There is no user database, server-side file processing, user file storage, ad network, analytics, newsletter service, or AI API key.
+PDF encryption/decryption, secure redaction, HEIC/SVG input conversion, object removal, AI upscaling and remote-service AI tools are not listed as working tools. They require additional compatible implementations, heavier models, or services beyond this phase. There is no user database, server-side file processing, user file storage, ad network, analytics, newsletter service, or AI API key.
 
 ## Deployment
 

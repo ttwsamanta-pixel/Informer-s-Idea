@@ -119,6 +119,18 @@ const groups: {
     processor: 'pdf',
     entries: [
       [
+        'compress-pdf',
+        'Compress PDF',
+        'Reduce PDF size with lossless or image-based compression.',
+        'compress',
+      ],
+      [
+        'edit-pdf',
+        'Edit PDF',
+        'Add text to selected PDF pages with size, color and position controls.',
+        'edit',
+      ],
+      [
         'merge-pdf',
         'Merge PDF',
         'Bring multiple PDFs together in one file.',

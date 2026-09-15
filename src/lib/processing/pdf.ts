@@ -9,6 +9,12 @@ export interface PDFSettings {
   pageSize: string;
   orientation: string;
   margin: number;
+  compression: 'lossless' | 'raster';
+  editText: string;
+  fontSize: number;
+  x: number;
+  y: number;
+  color: string;
 }
 export const defaultPDFSettings: PDFSettings = {
   pages: '',
@@ -19,6 +25,12 @@ export const defaultPDFSettings: PDFSettings = {
   pageSize: 'a4',
   orientation: 'portrait',
   margin: 20,
+  compression: 'lossless',
+  editText: '',
+  fontSize: 18,
+  x: 36,
+  y: 36,
+  color: '#111827',
 };
 export function parsePages(value: string, count: number) {
   if (!value.trim()) return Array.from({ length: count }, (_, i) => i);
@@ -92,6 +104,7 @@ export async function processPDF(
 ): Promise<Output[]> {
   if (operation === 'jpeg' || operation === 'png')
     return renderPDF(files[0], s, operation, onProgress);
+  if (operation === 'compress') return compressPDF(files[0], s, onProgress);
   let out = await PDFDocument.create();
   if (operation === 'from-image') {
     for (const [i, file] of files.entries()) {
@@ -192,6 +205,57 @@ export async function processPDF(
       copied.forEach((p) => out.addPage(p));
     } else {
       out = source;
+      if (operation === 'edit') {
+        if (!s.editText.trim())
+          throw new Error('Enter the text you want to add.');
+        if (/[^\x20-\x7e\n\r]/.test(s.editText))
+          throw new Error(
+            'Added text currently supports basic Latin characters only.',
+          );
+        if (
+          !Number.isFinite(s.fontSize) ||
+          s.fontSize < 6 ||
+          s.fontSize > 144 ||
+          !Number.isFinite(s.x) ||
+          !Number.isFinite(s.y) ||
+          s.x < 0 ||
+          s.y < 0
+        )
+          throw new Error(
+            'Use a font size from 6 to 144 and non-negative positions.',
+          );
+        if (!/^#[0-9a-f]{6}$/i.test(s.color))
+          throw new Error('Choose a valid text color.');
+        const font = await out.embedFont(StandardFonts.Helvetica);
+        const color = rgb(
+          ...([1, 3, 5].map(
+            (i) => parseInt(s.color.slice(i, i + 2), 16) / 255,
+          ) as [number, number, number]),
+        );
+        const lines = s.editText.replace(/\r/g, '').split('\n');
+        for (const index of selected) {
+          const page = out.getPage(index);
+          if (
+            s.y + lines.length * s.fontSize * 1.2 > page.getHeight() ||
+            lines.some(
+              (line) =>
+                s.x + font.widthOfTextAtSize(line, s.fontSize) >
+                page.getWidth(),
+            )
+          )
+            throw new Error(
+              `Text does not fit on page ${index + 1}. Reduce its size or adjust the position.`,
+            );
+          page.drawText(lines.join('\n'), {
+            x: s.x,
+            y: page.getHeight() - s.y - s.fontSize,
+            size: s.fontSize,
+            lineHeight: s.fontSize * 1.2,
+            font,
+            color,
+          });
+        }
+      }
       if (operation === 'rotate')
         selected.forEach((i) => {
           const p = out.getPage(i);
@@ -241,6 +305,68 @@ export async function processPDF(
       blob: new Blob([new Uint8Array(bytes)], { type: 'application/pdf' }),
       name: operation + '.pdf',
       detail: `${out.getPageCount()} pages`,
+    },
+  ];
+}
+
+async function compressPDF(
+  file: File,
+  s: PDFSettings,
+  onProgress: (n: number) => void,
+): Promise<Output[]> {
+  let out: PDFDocument;
+  if (s.compression === 'lossless') {
+    out = await PDFDocument.load(await file.arrayBuffer(), {
+      updateMetadata: false,
+    });
+  } else {
+    const loaded = await loadPDF(file);
+    out = await PDFDocument.create();
+    try {
+      if (loaded.document.numPages > 100)
+        throw new Error('Please compress up to 100 pages at a time.');
+      for (let i = 1; i <= loaded.document.numPages; i++) {
+        const page = await loaded.document.getPage(i);
+        const size = page.getViewport({ scale: 1 });
+        const viewport = page.getViewport({ scale: s.scale });
+        const canvas = makeCanvas(viewport.width, viewport.height);
+        await page.render({
+          canvas,
+          canvasContext: canvas.getContext('2d')!,
+          viewport,
+          background: 'white',
+        }).promise;
+        const jpg = await canvasBlob(canvas, 'image/jpeg', s.quality / 100);
+        const image = await out.embedJpg(await jpg.arrayBuffer());
+        out
+          .addPage([size.width, size.height])
+          .drawImage(image, {
+            x: 0,
+            y: 0,
+            width: size.width,
+            height: size.height,
+          });
+        canvas.width = canvas.height = 0;
+        page.cleanup();
+        onProgress((i / loaded.document.numPages) * 95);
+      }
+    } finally {
+      await loaded.destroy();
+    }
+  }
+  const bytes = await out.save({ useObjectStreams: true });
+  const smaller = bytes.length < file.size;
+  onProgress(100);
+  return [
+    {
+      blob: smaller
+        ? new Blob([new Uint8Array(bytes)], { type: 'application/pdf' })
+        : file,
+      name:
+        cleanName(file.name) + (smaller ? '-compressed.pdf' : '-original.pdf'),
+      detail: smaller
+        ? `${out.getPageCount()} pages · ${(100 * (1 - bytes.length / file.size)).toFixed(1)}% smaller · ${file.size.toLocaleString()} → ${bytes.length.toLocaleString()} bytes`
+        : 'This setting did not reduce the file size. Your original PDF is returned unchanged.',
     },
   ];
 }

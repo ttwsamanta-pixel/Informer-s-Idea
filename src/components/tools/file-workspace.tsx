@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { CropPreview } from './crop-preview';
+import { PDFPreview } from './pdf-preview';
 import { resizePresets } from '@/config/resize-presets';
 import { ToolIcon } from '@/components/ui/icon';
 import type { ToolDefinition } from '@/types/tools';
@@ -61,7 +62,10 @@ export default function FileWorkspace({ tool }: { tool: ToolDefinition }) {
   const updatePdf = <K extends keyof PDFSettings>(
     key: K,
     value: PDFSettings[K],
-  ) => setPdf((prev) => ({ ...prev, [key]: value }));
+  ) => {
+    setPdf((prev) => ({ ...prev, [key]: value }));
+    setResults([]);
+  };
   const choose = async (next: File[]) => {
     setError('');
     setResults([]);
@@ -179,6 +183,12 @@ export default function FileWorkspace({ tool }: { tool: ToolDefinition }) {
           </>
         )}
         <ErrorMessage message={error} />
+        {op === 'edit' && files[0] && (
+          <PDFPreview
+            key={results[0] ? 'result' : files[0].name}
+            blob={results[0]?.blob || files[0]}
+          />
+        )}
         {busy && (
           <ProcessingState
             progress={progress}
@@ -468,6 +478,7 @@ export default function FileWorkspace({ tool }: { tool: ToolDefinition }) {
                 'reverse',
                 'numbers',
                 'watermark',
+                'compress',
               ].includes(op) && (
                 <Field
                   label={
@@ -508,7 +519,99 @@ export default function FileWorkspace({ tool }: { tool: ToolDefinition }) {
                   />
                 </Field>
               )}
-              {['jpeg', 'png'].includes(op) && (
+              {op === 'edit' && (
+                <>
+                  <p className="tool-note">
+                    Add text over existing pages, then select Edit PDF to
+                    preview and download. Existing paragraphs cannot be
+                    rewritten. Basic Latin text is supported. Positions use the
+                    unrotated page coordinates.
+                  </p>
+                  <Field label="Text to add">
+                    <textarea
+                      value={pdf.editText}
+                      rows={4}
+                      onChange={(e) => updatePdf('editText', e.target.value)}
+                      placeholder="Enter your text"
+                    />
+                  </Field>
+                  <div className="field-row">
+                    <Field label="Font size (points)">
+                      <input
+                        type="number"
+                        min={6}
+                        max={144}
+                        value={pdf.fontSize}
+                        onChange={(e) =>
+                          updatePdf('fontSize', Number(e.target.value))
+                        }
+                      />
+                    </Field>
+                    <Field label="Text color">
+                      <input
+                        type="color"
+                        value={pdf.color}
+                        onChange={(e) => updatePdf('color', e.target.value)}
+                      />
+                    </Field>
+                  </div>
+                  <div className="field-row">
+                    <Field label="Left offset (points)">
+                      <input
+                        type="number"
+                        min={0}
+                        value={pdf.x}
+                        onChange={(e) => updatePdf('x', Number(e.target.value))}
+                      />
+                    </Field>
+                    <Field label="Top offset (points)">
+                      <input
+                        type="number"
+                        min={0}
+                        value={pdf.y}
+                        onChange={(e) => updatePdf('y', Number(e.target.value))}
+                      />
+                    </Field>
+                  </div>
+                  <p className="tool-note">
+                    72 points = 1 inch. To add another text block, upload your
+                    edited download.
+                  </p>
+                </>
+              )}
+              {op === 'compress' && (
+                <>
+                  <Field label="Compression mode">
+                    <select
+                      value={pdf.compression}
+                      onChange={(e) =>
+                        updatePdf(
+                          'compression',
+                          e.target.value as PDFSettings['compression'],
+                        )
+                      }
+                    >
+                      <option value="lossless">
+                        Lossless — preserve text and graphics
+                      </option>
+                      <option value="raster">
+                        Image-based — best for scanned PDFs
+                      </option>
+                    </select>
+                  </Field>
+                  <p className="tool-note">
+                    {pdf.compression === 'lossless'
+                      ? 'Optimizes PDF structure without lowering image quality. Already optimized PDFs may not shrink.'
+                      : 'Converts every page to a JPEG image. Text will no longer be selectable; links, forms and accessibility structure are removed. Best for scans. Up to 100 pages.'}
+                  </p>
+                  <p className="tool-note">
+                    If the result is larger, we return your original file.
+                    Review the downloaded PDF before sharing.
+                  </p>
+                </>
+              )}
+              {(['jpeg', 'png'].includes(op) ||
+                (op === 'compress' && pdf.compression === 'raster')) && (
                 <Field label="Render resolution">
                   <select
                     value={pdf.scale}
@@ -555,7 +658,8 @@ export default function FileWorkspace({ tool }: { tool: ToolDefinition }) {
                   </Field>
                 </>
               )}
-              {['jpeg', 'from-image'].includes(op) && (
+              {(['jpeg', 'from-image'].includes(op) ||
+                (op === 'compress' && pdf.compression === 'raster')) && (
                 <Field label={`Image quality: ${pdf.quality}%`}>
                   <input
                     type="range"
