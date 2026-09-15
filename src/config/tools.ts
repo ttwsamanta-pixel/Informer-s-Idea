@@ -127,7 +127,7 @@ const groups: {
       [
         'edit-pdf',
         'Edit PDF',
-        'Add text to selected PDF pages with size, color and position controls.',
+        'Edit text and images visually. Add signatures, shapes, highlights and links.',
         'edit',
       ],
       [

@@ -3035,3 +3035,447 @@ progress {
   display: flex;
   align-items: center;
 }
+
+/* Visual PDF editor */
+.visual-pdf-editor {
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  overflow: hidden;
+  background: var(--surface);
+  box-shadow: 0 14px 50px #283d7410;
+}
+.editor-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 28px;
+  background: linear-gradient(115deg, var(--soft), var(--surface));
+}
+.editor-heading h2 {
+  font-size: 25px;
+  margin: 0 0 8px;
+  letter-spacing: -0.7px;
+}
+.editor-heading p {
+  color: var(--muted);
+  margin: 0;
+  font-size: 13px;
+}
+.editor-private {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #079b78;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.editor-welcome {
+  max-width: 650px;
+  margin: 36px auto;
+  padding: 24px;
+  text-align: center;
+}
+.editor-welcome > svg {
+  color: var(--primary);
+  margin: 0 auto 16px;
+}
+.editor-welcome h3 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+.editor-welcome > p {
+  color: var(--muted);
+}
+.editor-filebar {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 16px 22px;
+  border-block: 1px solid var(--border);
+}
+.editor-filebar > span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  margin-right: auto;
+}
+.editor-filebar .button {
+  padding: 10px 15px;
+  min-height: 40px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.editor-open {
+  position: relative;
+  color: var(--primary);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.editor-open input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  cursor: pointer;
+}
+.editor-open:has(input:disabled) {
+  opacity: 0.4;
+  cursor: default;
+}
+.editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  padding: 12px 18px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.editor-toolbar button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 8px;
+  padding: 10px 9px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.editor-toolbar button:hover,
+.editor-toolbar button.active {
+  background: var(--soft);
+  color: var(--primary);
+  border-color: var(--border);
+}
+.toolbar-divider {
+  width: 1px;
+  background: var(--border);
+  margin: 6px;
+}
+.editor-body {
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr) 245px;
+  min-height: 620px;
+}
+.editor-pages {
+  border-right: 1px solid var(--border);
+  padding: 14px 10px;
+  max-height: 950px;
+  overflow-y: auto;
+}
+.editor-pages h3 {
+  font-size: 11px;
+  margin: 0 0 17px;
+  text-align: center;
+}
+.editor-pages h3 span {
+  color: var(--muted);
+}
+.editor-pages button {
+  width: 100%;
+  min-height: 76px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  background: var(--surface);
+  color: var(--muted);
+  position: relative;
+  font-size: 11px;
+}
+.editor-pages button.active {
+  background: var(--soft);
+  border-color: var(--primary);
+  color: var(--primary);
+  box-shadow: 0 3px 12px #5740ff12;
+}
+.editor-pages i {
+  position: absolute;
+  right: 5px;
+  top: 5px;
+  width: 5px;
+  height: 5px;
+  background: #0cb58b;
+  border-radius: 50%;
+}
+.editor-canvas-area {
+  background: #eef0f7;
+  min-width: 0;
+  padding-bottom: 18px;
+}
+.editor-viewbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 18px;
+  color: #54617f;
+  font-size: 12px;
+}
+.editor-viewbar > div {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+.editor-viewbar button {
+  background: #fff;
+  padding: 7px;
+  border-radius: 6px;
+  color: #344269;
+  min-width: 32px;
+}
+.editor-instruction {
+  font-size: 11px;
+  color: #637193;
+  text-align: center;
+  margin: 0 12px 12px;
+  min-height: 18px;
+}
+.editor-scroll {
+  overflow: auto;
+  padding: 8px 20px 25px;
+  max-height: 1000px;
+}
+.editor-paper {
+  background: #fff;
+  position: relative;
+  margin: 0 auto;
+  box-shadow: 0 4px 18px #26365720;
+  flex-shrink: 0;
+  touch-action: pan-x pan-y;
+}
+.editor-page-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  user-select: none;
+}
+.editor-object {
+  position: absolute;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 1px;
+  cursor: move;
+  min-height: 0;
+  touch-action: none;
+}
+.editor-object:hover {
+  border-color: #6650ff;
+  background: #6650ff0a;
+}
+.editor-object.selected {
+  border: 1.5px solid #6650ff;
+  background: #6650ff0d;
+  outline: 2px solid #ffffff70;
+  z-index: 2;
+}
+.object-handle {
+  position: absolute;
+  left: -1px;
+  bottom: 100%;
+  background: #6650ff;
+  color: white;
+  border-radius: 4px 4px 0 0;
+  font-size: 9px;
+  padding: 3px 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1.2;
+  pointer-events: none;
+}
+.editor-properties {
+  border-left: 1px solid var(--border);
+  padding: 20px 16px;
+  min-width: 0;
+}
+.editor-properties h3 {
+  font-size: 15px;
+  text-transform: capitalize;
+  margin: 0 0 20px;
+}
+.editor-properties > svg {
+  color: var(--primary);
+  margin: 20px 0;
+}
+.editor-properties p {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.editor-properties fieldset {
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.editor-properties .field-row {
+  gap: 8px;
+}
+.editor-properties .field label,
+.editor-properties label {
+  font-size: 11px;
+}
+.editor-properties input,
+.editor-properties select,
+.editor-properties textarea {
+  padding: 9px;
+  font-size: 12px;
+  min-width: 0;
+}
+.editor-properties .button {
+  font-size: 12px;
+  margin-bottom: 9px;
+  padding: 10px;
+}
+.editor-tip {
+  margin-block: 24px;
+  border-top: 1px solid var(--border);
+  padding-top: 18px;
+  font-size: 12px;
+}
+.editor-delete {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  color: #d33457;
+  background: transparent;
+  padding: 10px 0;
+  font-size: 12px;
+}
+.editor-status {
+  text-align: center;
+  color: #536285;
+  font-size: 11px;
+  padding: 0 15px;
+}
+.visual-pdf-editor > .tool-note {
+  padding: 16px 24px;
+  margin: 0;
+  border-top: 1px solid var(--border);
+}
+.visual-pdf-editor > .error-message {
+  margin: 12px;
+}
+.editor-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: #11172c80;
+}
+.editor-modal > div {
+  width: min(640px, 100%);
+  border-radius: 18px;
+  padding: 24px;
+  background: var(--surface);
+}
+.editor-modal .icon-button {
+  float: right;
+}
+.editor-modal canvas {
+  width: 100%;
+  background: #fff;
+  border: 1px dashed #a8b3cc;
+  border-radius: 10px;
+  touch-action: none;
+  margin-block: 20px;
+}
+[data-theme='dark'] .editor-canvas-area {
+  background: #0d1424;
+}
+[data-theme='dark'] .editor-viewbar,
+[data-theme='dark'] .editor-instruction,
+[data-theme='dark'] .editor-status {
+  color: #a9b5d4;
+}
+@media (max-width: 1050px) {
+  .editor-body {
+    grid-template-columns: 65px minmax(0, 1fr) 210px;
+  }
+  .editor-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .editor-scroll {
+    padding-inline: 10px;
+  }
+}
+@media (max-width: 740px) {
+  .editor-heading {
+    padding: 20px;
+  }
+  .editor-heading h2 {
+    font-size: 21px;
+  }
+  .editor-filebar {
+    flex-wrap: wrap;
+    padding: 12px;
+    gap: 10px;
+  }
+  .editor-filebar > span {
+    width: 100%;
+  }
+  .editor-open {
+    margin-right: auto;
+  }
+  .editor-toolbar {
+    padding: 8px;
+    gap: 3px;
+  }
+  .editor-toolbar button {
+    font-size: 11px;
+    padding: 8px 6px;
+  }
+  .editor-body {
+    display: flex;
+    flex-direction: column;
+  }
+  .editor-pages {
+    display: flex;
+    gap: 8px;
+    padding: 10px;
+    overflow-x: auto;
+    border-bottom: 1px solid var(--border);
+    max-height: 90px;
+  }
+  .editor-pages h3 {
+    display: none;
+  }
+  .editor-pages button {
+    width: 42px;
+    min-width: 42px;
+    min-height: 48px;
+    margin: 0;
+  }
+  .editor-pages button svg {
+    width: 18px;
+    height: 18px;
+  }
+  .editor-properties {
+    border-top: 1px solid var(--border);
+    border-left: 0;
+  }
+  .editor-properties .field-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .editor-viewbar {
+    padding: 10px;
+  }
+  .editor-welcome {
+    padding: 15px;
+    margin: 10px auto;
+  }
+}

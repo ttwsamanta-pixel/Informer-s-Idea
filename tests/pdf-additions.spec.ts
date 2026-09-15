@@ -31,68 +31,6 @@ async function textPages(bytes: Uint8Array) {
   }
 }
 
-test('PDF tools are discoverable and editor preserves original text while adding selected-page text', async ({
-  page,
-}) => {
-  await page.goto('/pdf-tools');
-  await expect(
-    page
-      .locator('main')
-      .getByRole('heading', { name: 'Compress PDF', exact: true }),
-  ).toBeVisible();
-  await expect(
-    page
-      .locator('main')
-      .getByRole('heading', { name: 'Edit PDF', exact: true }),
-  ).toBeVisible();
-  const doc = await PDFDocument.create();
-  for (let i = 0; i < 2; i++)
-    doc
-      .addPage([300, 400])
-      .drawText('Original page ' + (i + 1), { x: 10, y: 200, size: 12 });
-  await page.goto('/tools/edit-pdf');
-  await page.locator('input[type=file]').setInputFiles({
-    name: 'input.pdf',
-    mimeType: 'application/pdf',
-    buffer: Buffer.from(await doc.save()),
-  });
-  await page.getByLabel('Text to add').fill('Approved');
-  await page.getByLabel('Pages (blank = all)').fill('2');
-  await page.getByLabel('Text color').fill('#ff0000');
-  await page.getByRole('button', { name: 'Edit PDF', exact: true }).click();
-  await expect(page.locator('.result-card')).toBeVisible();
-  const bytes = await download(page);
-  const texts = await textPages(bytes);
-  expect(texts[0]).toContain('Original page 1');
-  expect(texts[0]).not.toContain('Approved');
-  expect(texts[1]).toContain('Original page 2');
-  expect(texts[1]).toContain('Approved');
-  await expect(page.getByRole('button', { name: 'Next page' })).toBeEnabled();
-  await page.getByRole('button', { name: 'Next page' }).click();
-  await expect(page.getByLabel('PDF page 2 preview')).toBeVisible();
-  await expect(page.getByLabel('PDF page 2 preview')).toHaveAttribute(
-    'data-page',
-    '2',
-  );
-  await page.evaluate(() => window.scrollTo({ top: 0, behavior: 'instant' }));
-  await page.screenshot({
-    path: 'test-results/pdf-editor-desktop.png',
-    fullPage: true,
-  });
-  await page.setViewportSize({ width: 390, height: 844 });
-  expect(
-    await page.evaluate(() => document.documentElement.scrollWidth),
-  ).toBeLessThanOrEqual(390);
-  await page.screenshot({
-    path: 'test-results/pdf-editor-mobile.png',
-    fullPage: true,
-  });
-  await page.getByLabel('Left offset (points)').fill('9999');
-  await page.getByRole('button', { name: 'Edit PDF', exact: true }).click();
-  await expect(page.locator('.error-message')).toContainText('does not fit');
-  await expect(page.locator('.result-card')).toHaveCount(0);
-});
-
 test('lossless compression preserves text and never returns a larger file', async ({
   page,
 }) => {

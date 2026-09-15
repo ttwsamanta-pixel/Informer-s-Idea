@@ -1,5 +1,8 @@
 import { mkdir, copyFile, cp } from 'node:fs/promises';
 await mkdir('public/workers', { recursive: true });
+await cp('node_modules/mupdf/dist', 'public/workers/mupdf', {
+  recursive: true,
+});
 await copyFile(
   'node_modules/pdfjs-dist/build/pdf.worker.min.mjs',
   'public/workers/pdf.worker.min.mjs',

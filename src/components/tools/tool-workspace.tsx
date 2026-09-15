@@ -12,6 +12,10 @@ const FileWorkspace = dynamic(() => import('./file-workspace'), {
   ssr: false,
   loading,
 });
+const VisualPDFEditor = dynamic(() => import('./visual-pdf-editor'), {
+  ssr: false,
+  loading,
+});
 const PassportWorkspace = dynamic(() => import('./passport-workspace'), {
   ssr: false,
   loading,
@@ -42,6 +46,7 @@ export function ToolWorkspace({ tool }: { tool: ToolDefinition }) {
       ),
     );
   }, [tool.slug]);
+  if (tool.slug === 'edit-pdf') return <VisualPDFEditor />;
   switch (tool.component) {
     case 'image':
     case 'pdf':
