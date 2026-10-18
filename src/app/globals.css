@@ -125,7 +125,8 @@ button {
   background: #d8d0ff;
 }
 .container {
-  width: min(1200px, calc(100% - 64px));
+  width: min(1760px, calc(100% - 64px));
+  max-width: none;
   margin-inline: auto;
 }
 .button {
@@ -1628,9 +1629,6 @@ progress {
   color: #9d8aff;
 }
 @media (min-width: 1600px) {
-  .container {
-    width: min(1320px, calc(100% - 100px));
-  }
   .hero-grid {
     min-height: 480px;
   }
