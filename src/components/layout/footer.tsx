@@ -65,16 +65,6 @@ export function Footer() {
           <Link href="/privacy-policy">Privacy Policy</Link>
           <Link href="/terms-of-use">Terms of Use</Link>
           <Link href="/disclaimer">Disclaimer</Link>
-          <a
-            href="https://github.com/ttwsamanta-pixel/Informer-s-Idea"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Source code
-          </a>
-          <Link href="/sitemap.xml">
-            Sitemap <ArrowUpRight size={12} />
-          </Link>
           <p className="footer-note">
             Files are processed locally in your browser and are not stored on
             our servers.
