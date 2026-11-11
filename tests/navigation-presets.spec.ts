@@ -270,3 +270,41 @@ test('header exposes each tool category and keeps informational links in footer'
     mobile.locator('a[href="/blog"], a[href="/about"], a[href="/contact"]'),
   ).toHaveCount(0);
 });
+
+test('desktop header keeps logo, full navigation and actions on one row', async ({
+  page,
+}) => {
+  await page.goto('/');
+  for (const width of [1351, 1440, 1520, 1600, 1920]) {
+    await page.setViewportSize({ width, height: 1000 });
+    const boxes = await page
+      .locator(
+        '.nav-row > .brand, .nav-row > .desktop-nav, .nav-row > .nav-actions',
+      )
+      .evaluateAll((elements) =>
+        elements.map((el) => {
+          const r = el.getBoundingClientRect();
+          return { left: r.left, right: r.right, center: r.y + r.height / 2 };
+        }),
+      );
+    expect(
+      Math.abs(boxes[0].center - boxes[1].center),
+      'same row at ' + width,
+    ).toBeLessThan(2);
+    expect(
+      Math.abs(boxes[1].center - boxes[2].center),
+      'actions aligned at ' + width,
+    ).toBeLessThan(2);
+    expect(boxes[0].right, 'logo fits at ' + width).toBeLessThanOrEqual(
+      boxes[1].left,
+    );
+    expect(boxes[1].right, 'navigation fits at ' + width).toBeLessThanOrEqual(
+      boxes[2].left,
+    );
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBeTruthy();
+  }
+});
