@@ -1,6 +1,47 @@
 import { test, expect, type Page } from '@playwright/test';
 import { PDFDocument, StandardFonts } from 'pdf-lib';
 import { readFile } from 'node:fs/promises';
+test('header conversion shortcuts select formats on desktop and mobile', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1600, height: 1000 });
+  await page.goto('/');
+  await page
+    .getByRole('button', { name: 'Converter Tools', exact: true })
+    .hover();
+  const menu = page.locator('#menu-converter');
+  await expect(menu.getByRole('heading')).toHaveText([
+    'Image',
+    'Document',
+    'Audio',
+    'Video',
+    'Other',
+  ]);
+  await expect(menu.getByText('MP4 to MP3')).toHaveAttribute(
+    'aria-disabled',
+    'true',
+  );
+  await menu.getByRole('link', { name: 'MP3 to WAV', exact: true }).click();
+  await expect(page.getByLabel('Convert from', { exact: true })).toContainText(
+    'MP3',
+  );
+  await expect(page.getByLabel('Convert to', { exact: true })).toContainText(
+    'WAV',
+  );
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Open navigation' }).click();
+  await page.getByRole('button', { name: 'Show Converter Tools' }).click();
+  await page
+    .locator('#mobile-converter')
+    .getByRole('link', { name: 'JPG to PNG', exact: true })
+    .click();
+  await expect(page.getByLabel('Convert from', { exact: true })).toContainText(
+    'JPG',
+  );
+  await expect(page.getByLabel('Convert to', { exact: true })).toContainText(
+    'PNG',
+  );
+});
 async function result(page: Page) {
   const pending = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Download', exact: true }).click();

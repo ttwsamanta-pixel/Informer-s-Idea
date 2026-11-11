@@ -14,6 +14,7 @@ import {
   Sun,
   X,
 } from 'lucide-react';
+import { ConverterMenu } from './converter-menu';
 import { Youtube } from '@/components/ui/youtube';
 import { Logo } from '@/components/layout/logo';
 import { ToolIcon } from '@/components/ui/icon';
@@ -34,48 +35,52 @@ function MegaPanel({ menu }: { menu: NavigationMenu }) {
       id={'menu-' + menu.id}
       aria-label={menu.label + ' menu'}
     >
-      <div className="container mega-layout">
-        <Link href={menu.href} className={'mega-feature feature-' + menu.id}>
-          <span className="mega-feature-art">
-            <Grid2X2 size={43} />
-            <span>YOUR EVERYDAY TOOLKIT</span>
-          </span>
-          <span>
-            <strong>{menu.label}</strong>
-            <p>{menu.description}</p>
-            <span className="mega-feature-link">
-              Explore the collection <ArrowRight size={16} />
+      {menu.id === 'converter' ? (
+        <ConverterMenu />
+      ) : (
+        <div className="container mega-layout">
+          <Link href={menu.href} className={'mega-feature feature-' + menu.id}>
+            <span className="mega-feature-art">
+              <Grid2X2 size={43} />
+              <span>YOUR EVERYDAY TOOLKIT</span>
             </span>
-          </span>
-        </Link>
-        <div
-          className={
-            'mega-columns ' + (groups.length > 3 ? 'mega-columns-many' : '')
-          }
-        >
-          {groups.map((g) => (
-            <section className="mega-group" key={g.title}>
-              <h2 className={g.category.color}>
-                <ToolIcon name={g.category.icon} size={19} />
-                {g.title}
-              </h2>
-              <ul>
-                {g.items.map((t) => (
-                  <li key={t.slug}>
-                    <Link href={'/tools/' + t.slug} prefetch={false}>
-                      <span className={'mega-tool-icon ' + g.category.color}>
-                        <ToolIcon name={t.icon} size={17} />
-                      </span>
-                      <span>{t.name}</span>
-                      {t.popular && <small>Popular</small>}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
+            <span>
+              <strong>{menu.label}</strong>
+              <p>{menu.description}</p>
+              <span className="mega-feature-link">
+                Explore the collection <ArrowRight size={16} />
+              </span>
+            </span>
+          </Link>
+          <div
+            className={
+              'mega-columns ' + (groups.length > 3 ? 'mega-columns-many' : '')
+            }
+          >
+            {groups.map((g) => (
+              <section className="mega-group" key={g.title}>
+                <h2 className={g.category.color}>
+                  <ToolIcon name={g.category.icon} size={19} />
+                  {g.title}
+                </h2>
+                <ul>
+                  {g.items.map((t) => (
+                    <li key={t.slug}>
+                      <Link href={'/tools/' + t.slug} prefetch={false}>
+                        <span className={'mega-tool-icon ' + g.category.color}>
+                          <ToolIcon name={t.icon} size={17} />
+                        </span>
+                        <span>{t.name}</span>
+                        {t.popular && <small>Popular</small>}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
       <div className="container mega-bottom">
         <Link href={menu.href}>
           Browse {menu.label.toLowerCase()} <ArrowRight size={15} />
@@ -368,14 +373,18 @@ export function HeaderNavigation({
               </div>
               {open === 'mobile-' + c.id && (
                 <div className="mobile-tool-links" id={'mobile-' + c.id}>
-                  {tools
-                    .filter((t) => t.category === c.id)
-                    .map((t) => (
-                      <Link href={'/tools/' + t.slug} key={t.slug}>
-                        <ToolIcon name={t.icon} size={16} />
-                        {t.name}
-                      </Link>
-                    ))}
+                  {c.id === 'converter' ? (
+                    <ConverterMenu mobile />
+                  ) : (
+                    tools
+                      .filter((t) => t.category === c.id)
+                      .map((t) => (
+                        <Link href={'/tools/' + t.slug} key={t.slug}>
+                          <ToolIcon name={t.icon} size={16} />
+                          {t.name}
+                        </Link>
+                      ))
+                  )}
                 </div>
               )}
             </div>

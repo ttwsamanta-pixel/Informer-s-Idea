@@ -1,5 +1,6 @@
 'use client';
-import { useRef, useState } from 'react';
+import { Suspense, useRef, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
   ArrowRight,
@@ -127,9 +128,44 @@ interface QueueItem {
   outputs?: Output[];
 }
 export default function ConverterHub() {
-  const [source, setSource] = useState('');
-  const [target, setTarget] = useState('');
-  const [category, setCategory] = useState<FormatCategory>('Images');
+  return (
+    <Suspense fallback={<ConverterWorkspace />}>
+      <ConverterRoute />
+    </Suspense>
+  );
+}
+function ConverterRoute() {
+  const params = useSearchParams();
+  const input = getFormat(params.get('from') || '');
+  const from = input?.outputs.length ? input.id : '';
+  const to = input?.outputs.includes(params.get('to') || '')
+    ? params.get('to')!
+    : '';
+  const requested = params.get('category') as FormatCategory;
+  const category = formatCategories.includes(requested)
+    ? requested
+    : input?.category || 'Images';
+  return (
+    <ConverterWorkspace
+      key={`${from}:${to}:${category}`}
+      initialSource={from}
+      initialTarget={to}
+      initialCategory={category}
+    />
+  );
+}
+function ConverterWorkspace({
+  initialSource = '',
+  initialTarget = '',
+  initialCategory = 'Images',
+}: {
+  initialSource?: string;
+  initialTarget?: string;
+  initialCategory?: FormatCategory;
+}) {
+  const [source, setSource] = useState(initialSource);
+  const [target, setTarget] = useState(initialTarget);
+  const [category, setCategory] = useState<FormatCategory>(initialCategory);
   const [query, setQuery] = useState('');
   const [items, setItems] = useState<QueueItem[]>([]);
   const [busy, setBusy] = useState(false);
