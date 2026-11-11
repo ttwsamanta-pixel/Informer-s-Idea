@@ -2920,6 +2920,24 @@ progress {
     font-size: 11px;
   }
 }
+@media (min-width: 1101px) and (max-width: 1599px) {
+  .site-header {
+    height: auto;
+  }
+  .nav-row {
+    flex-wrap: wrap;
+    gap: 4px 24px;
+    padding-block: 12px 6px;
+  }
+  .desktop-nav {
+    order: 3;
+    flex-basis: 100%;
+    justify-content: space-between;
+  }
+  .mega-panel {
+    max-height: calc(100dvh - 145px);
+  }
+}
 @media (max-width: 1100px) {
   .desktop-nav {
     display: none;

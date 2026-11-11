@@ -1,49 +1,13 @@
 import { categories, type CategoryId } from './categories';
 import { tools } from './tools';
 import type { ToolDefinition } from '@/types/tools';
-export const navigationMenus = [
-  {
-    id: 'image',
-    label: 'Image Tools',
-    categoryIds: ['image'],
-    href: '/image-tools',
-    description: 'Every image, just the way you need it.',
-  },
-  {
-    id: 'pdf',
-    label: 'PDF Tools',
-    categoryIds: ['pdf'],
-    href: '/pdf-tools',
-    description: 'Bring your documents together. Get more done.',
-  },
-  {
-    id: 'passport',
-    label: 'Passport',
-    categoryIds: ['passport'],
-    href: '/passport-tools',
-    description: 'Photo sizes, signatures and print-ready sheets.',
-  },
-  {
-    id: 'more',
-    label: 'More Tools',
-    categoryIds: ['qr', 'ocr', 'converter', 'utility', 'ai'],
-    href: '/all-tools',
-    description: 'Little helpers for your next big idea.',
-  },
-  {
-    id: 'all',
-    label: 'All Tools',
-    categoryIds: categories.map((c) => c.id),
-    href: '/all-tools',
-    description: 'Your entire toolkit. One convenient place.',
-  },
-] satisfies {
-  id: string;
-  label: string;
-  categoryIds: CategoryId[];
-  href: string;
-  description: string;
-}[];
+export const navigationMenus = categories.map((category) => ({
+  id: category.id,
+  label: category.id === 'passport' ? 'Passport Photo' : category.name,
+  categoryIds: [category.id] as CategoryId[],
+  href: '/' + category.slug,
+  description: category.description,
+}));
 export type NavigationMenu = (typeof navigationMenus)[number];
 export interface MenuGroup {
   title: string;

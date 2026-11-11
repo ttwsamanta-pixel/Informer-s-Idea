@@ -43,15 +43,15 @@ test('hover mega menus contain icons and close on leave, switch, scroll, and nav
   await nav.getByRole('button', { name: 'PDF Tools', exact: true }).hover();
   await expect(page.locator('#menu-pdf')).toBeVisible();
   await expect(page.locator('#menu-image')).toHaveCount(0);
-  await nav.getByRole('button', { name: 'All Tools', exact: true }).hover();
-  await expect(page.locator('#menu-all a[href^="/tools/"]')).toHaveCount(82);
-  await page.locator('#menu-all').evaluate((el) => {
-    el.scrollTop = 150;
-  });
-  await expect(page.locator('#menu-all')).toBeVisible();
+  await expect(
+    nav.getByRole('link', { name: 'All Tools', exact: true }),
+  ).toHaveAttribute('href', '/all-tools');
+  await expect(
+    nav.getByRole('button', { name: 'All Tools', exact: true }),
+  ).toHaveCount(0);
   await page.mouse.wheel(0, 500);
   await page.evaluate(() => window.scrollTo(0, 500));
-  await expect(page.locator('#menu-all')).toHaveCount(0);
+  await expect(page.locator('#menu-pdf')).toHaveCount(0);
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(500);
   // Return to the top before Playwright scrolls the sticky trigger into view.
   // Otherwise that automatic scroll correctly dismisses the newly opened menu.
@@ -221,4 +221,52 @@ test('each resize preset applies exact dimensions and produces the chosen output
     0,
   );
   await expect(page.getByRole('button', { name: /^PAN Card / })).toBeDisabled();
+});
+
+test('header exposes each tool category and keeps informational links in footer', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto('/');
+  const nav = page.getByRole('navigation', { name: 'Main navigation' });
+  const labels = [
+    'Image Tools',
+    'PDF Tools',
+    'Passport Photo',
+    'AI Tools',
+    'QR Code Tools',
+    'Converter Tools',
+    'OCR Tools',
+    'Utility Tools',
+  ];
+  await expect(
+    nav.locator(':scope > a, :scope > .hover-menu > button'),
+  ).toHaveText(['Home', ...labels, 'All Tools']);
+  for (const label of labels) {
+    await nav.getByRole('button', { name: label, exact: true }).hover();
+    await expect(
+      page.getByLabel(label + ' menu', { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page
+        .getByLabel(label + ' menu', { exact: true })
+        .locator('a[href^="/tools/"]')
+        .first(),
+    ).toBeVisible();
+  }
+  for (const href of ['/blog', '/about', '/contact']) {
+    await expect(nav.locator('a[href="' + href + '"]')).toHaveCount(0);
+    await expect(page.locator('footer a[href="' + href + '"]')).toBeVisible();
+  }
+  await nav.getByRole('link', { name: 'All Tools', exact: true }).click();
+  await expect(page).toHaveURL(/all-tools/);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole('button', { name: 'Open navigation' }).click();
+  const mobile = page.getByRole('navigation', { name: 'Mobile navigation' });
+  await expect(
+    mobile.locator(':scope > a, .mobile-category-row > a'),
+  ).toHaveText(['Home', ...labels, 'All Tools']);
+  await expect(
+    mobile.locator('a[href="/blog"], a[href="/about"], a[href="/contact"]'),
+  ).toHaveCount(0);
 });

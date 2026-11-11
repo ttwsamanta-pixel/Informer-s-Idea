@@ -41,13 +41,10 @@ function MegaPanel({ menu }: { menu: NavigationMenu }) {
             <span>YOUR EVERYDAY TOOLKIT</span>
           </span>
           <span>
-            <strong>
-              {menu.id === 'all' ? 'All your tools. All here.' : menu.label}
-            </strong>
+            <strong>{menu.label}</strong>
             <p>{menu.description}</p>
             <span className="mega-feature-link">
-              Explore {menu.id === 'all' ? 'all tools' : 'the collection'}{' '}
-              <ArrowRight size={16} />
+              Explore the collection <ArrowRight size={16} />
             </span>
           </span>
         </Link>
@@ -81,11 +78,7 @@ function MegaPanel({ menu }: { menu: NavigationMenu }) {
       </div>
       <div className="container mega-bottom">
         <Link href={menu.href}>
-          Browse{' '}
-          {menu.id === 'all' || menu.id === 'more'
-            ? 'all tools'
-            : menu.label.toLowerCase()}{' '}
-          <ArrowRight size={15} />
+          Browse {menu.label.toLowerCase()} <ArrowRight size={15} />
         </Link>
         <span>
           <ShieldCheck size={15} />
@@ -277,14 +270,8 @@ export function HeaderNavigation({
           {navigationMenus.map((menu) =>
             disclosure(menu.id, menu.label, <MegaPanel menu={menu} />),
           )}
-          <Link href="/blog" onPointerEnter={close}>
-            Blog
-          </Link>
-          <Link href="/about" onPointerEnter={close}>
-            About
-          </Link>
-          <Link href="/contact" onPointerEnter={close}>
-            Contact
+          <Link href="/all-tools" onPointerEnter={close} onFocus={close}>
+            All Tools
           </Link>
         </nav>
         <div className="nav-actions">
@@ -359,9 +346,6 @@ export function HeaderNavigation({
           <Link href="/">
             Home <ArrowRight size={16} />
           </Link>
-          <Link href="/all-tools">
-            All Tools <Grid2X2 size={17} />
-          </Link>
           {categories.map((c) => (
             <div className="mobile-tool-group" key={c.id}>
               <div className="mobile-category-row">
@@ -369,7 +353,7 @@ export function HeaderNavigation({
                   <span className={c.color}>
                     <ToolIcon name={c.icon} size={18} />
                   </span>
-                  {c.name}
+                  {c.id === 'passport' ? 'Passport Photo' : c.name}
                 </Link>
                 <button
                   aria-label={'Show ' + c.name}
@@ -396,12 +380,9 @@ export function HeaderNavigation({
               )}
             </div>
           ))}
-          {['blog', 'about', 'contact'].map((s) => (
-            <Link key={s} href={'/' + s}>
-              {s[0].toUpperCase() + s.slice(1)}
-              <ArrowRight size={16} />
-            </Link>
-          ))}
+          <Link href="/all-tools">
+            All Tools <Grid2X2 size={17} />
+          </Link>
           <div className="mobile-channel-links">
             <h2>Watch our channels</h2>
             <ChannelLinks />
