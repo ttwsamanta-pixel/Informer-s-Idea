@@ -1,3 +1,4 @@
+import ConverterHub from '@/components/tools/converter-hub';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
@@ -120,6 +121,7 @@ export default async function CategoryPage({
 }) {
   const { page } = await params;
   const category = categories.find((c) => c.slug === page);
+  if (category?.id === 'converter') return <ConverterHub />;
   if (category)
     return (
       <>
