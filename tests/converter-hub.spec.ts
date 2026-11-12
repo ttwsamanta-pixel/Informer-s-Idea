@@ -17,10 +17,9 @@ test('header conversion shortcuts select formats on desktop and mobile', async (
     'Video',
     'Other',
   ]);
-  await expect(menu.getByText('MP4 to MP3')).toHaveAttribute(
-    'aria-disabled',
-    'true',
-  );
+  await expect(
+    menu.getByRole('link', { name: 'MP4 to MP3', exact: true }),
+  ).toHaveAttribute('href', '/converter-tools?from=mp4&to=mp3');
   await menu.getByRole('link', { name: 'MP3 to WAV', exact: true }).click();
   await expect(page.getByLabel('Convert from', { exact: true })).toContainText(
     'MP3',
@@ -104,7 +103,7 @@ test('PDF text export preserves actual selectable text and scanned PDF errors ar
   });
   await expect(
     page.getByLabel('Output for hello.pdf').locator('option'),
-  ).toHaveText(['Select format', 'TXT', 'JPG', 'PNG']);
+  ).toHaveText(['Select format', 'TXT', 'DOCX', 'JPG', 'PNG']);
   await page.getByLabel('Output for hello.pdf').selectOption('txt');
   await page
     .getByRole('button', { name: 'Convert files', exact: true })
@@ -163,7 +162,7 @@ test('gzip roundtrip, unsupported files, category availability and mobile layout
       buffer: gzipSync('Hello \u09ac\u09be\u0982\u09b2\u09be'),
     },
     {
-      name: 'unsupported.docx',
+      name: 'unsupported.doc',
       mimeType: 'application/octet-stream',
       buffer: Buffer.from('not supported'),
     },

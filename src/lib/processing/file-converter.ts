@@ -45,7 +45,10 @@ export async function convertFile(
   output: string,
   quality: number,
   progress: (n: number) => void,
+  signal?: AbortSignal,
+  status?: (text: string) => void,
 ): Promise<Output[]> {
+  signal?.throwIfAborted();
   const format = getFormat(input);
   if (!format?.outputs.includes(output))
     throw new Error('This conversion is not supported.');
@@ -56,11 +59,29 @@ export async function convertFile(
     { name: `${name}.${output}`, blob: new Blob([data], { type: mime }) },
   ];
   progress(10);
+  if (format.category === 'Video') {
+    const { convertVideo } = await import('./video-converter');
+    return convertVideo(file, input, output, progress, signal, status);
+  }
+  if (
+    input === 'docx' ||
+    (input === 'txt' && ['pdf', 'docx'].includes(output))
+  ) {
+    const { readDocx, textToPDF, textToDocx } =
+      await import('./document-converter');
+    const text = input === 'docx' ? await readDocx(file) : await readText(file);
+    signal?.throwIfAborted();
+    status?.('Creating text document...');
+    if (output === 'txt') return result(text, 'text/plain;charset=utf-8');
+    const blob =
+      output === 'pdf' ? await textToPDF(text, signal) : await textToDocx(text);
+    return [{ name: `${name}.${output}`, blob }];
+  }
   if (input === 'pdf') {
     const { validateFiles } = await import('./files');
     await validateFiles([file], 'pdf');
     const { renderPDF, loadPDF, defaultPDFSettings } = await import('./pdf');
-    if (output !== 'txt')
+    if (output === 'jpg' || output === 'png')
       return renderPDF(
         file,
         { ...defaultPDFSettings, quality },
@@ -73,6 +94,7 @@ export async function convertFile(
         throw new Error('Please use a PDF with up to 100 pages.');
       const pages: string[] = [];
       for (let n = 1; n <= loaded.document.numPages; n++) {
+        signal?.throwIfAborted();
         const page = await loaded.document.getPage(n);
         const content = await page.getTextContent();
         pages.push(
@@ -89,6 +111,12 @@ export async function convertFile(
         throw new Error(
           'No selectable text found. Use our OCR tools for scanned PDFs.',
         );
+      if (output === 'docx') {
+        const { textToDocx } = await import('./document-converter');
+        return [
+          { name: `${name}.docx`, blob: await textToDocx(pages.join('\n\n')) },
+        ];
+      }
       return result(pages.join('\n\n'), 'text/plain;charset=utf-8');
     } finally {
       await loaded.destroy();

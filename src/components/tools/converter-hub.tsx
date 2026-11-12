@@ -1,5 +1,5 @@
 'use client';
-import { Suspense, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -126,6 +126,7 @@ interface QueueItem {
   progress: number;
   error?: string;
   outputs?: Output[];
+  message?: string;
 }
 export default function ConverterHub() {
   return (
@@ -174,6 +175,8 @@ function ConverterWorkspace({
   const picker = useRef<HTMLInputElement>(null);
   const nextId = useRef(0);
   const busyRef = useRef(false);
+  const controller = useRef<AbortController | null>(null);
+  useEffect(() => () => controller.current?.abort(), []);
   const inputs = conversionFormats
     .filter((f) => f.outputs.length)
     .map((f) => f.id);
@@ -246,6 +249,8 @@ function ConverterWorkspace({
     busyRef.current = true;
     setBusy(true);
     setError('');
+    const job = new AbortController();
+    controller.current = job;
     try {
       const { convertFile } = await import('@/lib/processing/file-converter');
       for (const row of items.filter(
@@ -254,7 +259,13 @@ function ConverterWorkspace({
           row.target &&
           getFormat(row.input)?.outputs.includes(row.target),
       )) {
-        patch(row.id, { status: 'working', progress: 0, error: undefined });
+        if (job.signal.aborted) break;
+        patch(row.id, {
+          status: 'working',
+          progress: 0,
+          error: undefined,
+          message: 'Converting... Keep this tab open.',
+        });
         try {
           const results = await convertFile(
             row.file,
@@ -262,16 +273,25 @@ function ConverterWorkspace({
             row.target,
             90,
             (progress) => patch(row.id, { progress }),
+            job.signal,
+            (message) => patch(row.id, { message }),
           );
+          job.signal.throwIfAborted();
           patch(row.id, { status: 'done', progress: 100, outputs: results });
         } catch (e) {
-          patch(row.id, { status: 'error', error: friendlyError(e) });
+          patch(row.id, {
+            status: 'error',
+            error: job.signal.aborted
+              ? 'Conversion cancelled. You can try again.'
+              : friendlyError(e),
+          });
         }
         await new Promise((resolve) => setTimeout(resolve, 0));
       }
     } catch (e) {
       setError(friendlyError(e));
     } finally {
+      controller.current = null;
       busyRef.current = false;
       setBusy(false);
     }
@@ -326,6 +346,11 @@ function ConverterWorkspace({
           </fieldset>
         </div>
       </section>
+      {source && getFormat(source)?.note && (
+        <p className="container convert-limit-note" role="note">
+          {getFormat(source)!.note}
+        </p>
+      )}
       <section
         className="container convert-workspace"
         aria-label="File converter"
@@ -458,7 +483,7 @@ function ConverterWorkspace({
                 {row.status === 'working' && (
                   <div className="convert-progress" role="status">
                     <progress value={row.progress} max={100} />
-                    Converting… Keep this tab open.
+                    {row.message || 'Converting... Keep this tab open.'}
                   </div>
                 )}
                 {row.status === 'done' && (
@@ -476,6 +501,14 @@ function ConverterWorkspace({
             ))}
             <div className="convert-actions">
               <span>Choose an output for each file you want to convert.</span>
+              {busy && (
+                <button
+                  className="button secondary"
+                  onClick={() => controller.current?.abort()}
+                >
+                  Cancel conversion
+                </button>
+              )}
               {!!allResults.length && (
                 <button
                   className="button secondary"

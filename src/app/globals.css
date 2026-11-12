@@ -3989,3 +3989,11 @@ progress {
 .converter-menu-mobile .mega-group h2 {
   margin-bottom: 4px;
 }
+
+.convert-limit-note {
+  position: relative;
+  margin-block: 18px 70px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}

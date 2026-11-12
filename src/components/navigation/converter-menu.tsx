@@ -38,6 +38,11 @@ const groups = [
     icon: FileText,
     links: [
       category('Document Converter', 'Documents'),
+      pair('docx', 'pdf'),
+      pair('pdf', 'docx'),
+      pair('docx', 'txt'),
+      pair('txt', 'pdf'),
+      pair('txt', 'docx'),
       pair('pdf', 'jpg'),
       pair('pdf', 'png'),
       pair('pdf', 'txt'),
@@ -61,8 +66,16 @@ const groups = [
   {
     title: 'Video',
     icon: Video,
-    links: [category('Video availability', 'Video')],
-    unavailable: ['MP4 to MP3', 'MP4 to WAV', 'MOV to MP4', 'MP4 to GIF'],
+    links: [
+      category('Video Converter', 'Video'),
+      pair('mp4', 'mp3'),
+      pair('mp4', 'wav'),
+      pair('mov', 'mp4'),
+      pair('webm', 'mp4'),
+      pair('mp4', 'gif'),
+      pair('mov', 'mp3'),
+      pair('webm', 'gif'),
+    ],
   },
   {
     title: 'Other',
@@ -88,7 +101,7 @@ export function ConverterMenu({ mobile = false }: { mobile?: boolean }) {
           : 'container converter-menu-columns'
       }
     >
-      {groups.map(({ title, icon: Icon, links, unavailable }) => (
+      {groups.map(({ title, icon: Icon, links }) => (
         <section className="mega-group" key={title}>
           <h2 className="purple">
             <Icon size={19} />
@@ -104,23 +117,6 @@ export function ConverterMenu({ mobile = false }: { mobile?: boolean }) {
               </li>
             ))}
           </ul>
-          {unavailable && (
-            <>
-              <p className="converter-menu-note">Not available yet</p>
-              <ul>
-                {unavailable.map((name) => (
-                  <li key={name}>
-                    <span
-                      className="converter-menu-unavailable"
-                      aria-disabled="true"
-                    >
-                      {name}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
         </section>
       ))}
     </div>
