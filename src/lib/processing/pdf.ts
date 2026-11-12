@@ -50,7 +50,7 @@ export function parsePages(value: string, count: number) {
 }
 export async function loadPDF(file: File) {
   const pdfjs = await import('pdfjs-dist');
-  pdfjs.GlobalWorkerOptions.workerSrc = '/workers/pdf.worker.min.mjs';
+  pdfjs.GlobalWorkerOptions.workerSrc = '/workers/pdf.worker.min.js';
   const task = pdfjs.getDocument({
     data: new Uint8Array(await file.arrayBuffer()),
     cMapUrl: '/workers/cmaps/',

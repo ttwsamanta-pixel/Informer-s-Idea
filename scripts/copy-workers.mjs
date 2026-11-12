@@ -7,6 +7,12 @@ await copyFile(
   'node_modules/pdfjs-dist/build/pdf.worker.min.mjs',
   'public/workers/pdf.worker.min.mjs',
 );
+// Hostinger's static layer serves .mjs as text/plain. Keep module code unchanged
+// under a .js URL so browsers receive a JavaScript MIME type.
+await copyFile(
+  'node_modules/pdfjs-dist/build/pdf.worker.min.mjs',
+  'public/workers/pdf.worker.min.js',
+);
 
 for (const folder of ['cmaps', 'standard_fonts', 'wasm']) {
   await cp('node_modules/pdfjs-dist/' + folder, 'public/workers/' + folder, {

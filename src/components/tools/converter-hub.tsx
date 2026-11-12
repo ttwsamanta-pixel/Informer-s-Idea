@@ -130,7 +130,14 @@ interface QueueItem {
 }
 export default function ConverterHub() {
   return (
-    <Suspense fallback={<ConverterWorkspace />}>
+    <Suspense
+      fallback={
+        <section className="container section" role="status" aria-live="polite">
+          <h1>File converter</h1>
+          <p>Loading your conversion options...</p>
+        </section>
+      }
+    >
       <ConverterRoute />
     </Suspense>
   );
