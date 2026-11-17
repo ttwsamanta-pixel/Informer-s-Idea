@@ -16,12 +16,15 @@ import {
   Sparkles,
   Clock,
 } from 'lucide-react';
-import { categories } from '@/config/categories';
-import { tools } from '@/config/tools';
 import { ToolIcon } from '@/components/ui/icon';
 import { ToolCard, RecentTools } from '@/components/tools/directory';
-import { articles } from '@/config/articles';
-export default function Home() {
+import { catalog, blog, pageSEO } from '@/server/content';
+export async function generateMetadata() {
+  return pageSEO('/', { alternates: { canonical: '/' } });
+}
+export default async function Home() {
+  const { tools, categories } = await catalog();
+  const articles = await blog();
   return (
     <>
       <section className="hero">
@@ -57,16 +60,13 @@ export default function Home() {
             </form>
             <div className="popular-chips">
               <span>Popular:</span>
-              {[
-                'compress-image',
-                'resize-image',
-                'pdf-to-jpg',
-                'merge-pdf',
-              ].map((s) => (
-                <Link key={s} href={'/tools/' + s}>
-                  {tools.find((t) => t.slug === s)!.name}
-                </Link>
-              ))}
+              {['compress-image', 'resize-image', 'pdf-to-jpg', 'merge-pdf']
+                .filter((s) => tools.some((t) => t.slug === s))
+                .map((s) => (
+                  <Link key={s} href={'/tools/' + s}>
+                    {tools.find((t) => t.slug === s)!.name}
+                  </Link>
+                ))}
             </div>
           </div>
           <div

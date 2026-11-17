@@ -1,4 +1,5 @@
 'use client';
+import { trackEvent } from '@/lib/analytics-client';
 import { useRef, useState } from 'react';
 import { canvasBlob, download } from '@/lib/processing/files';
 import { Field, PrivacyNotice, ErrorMessage } from './shared';
@@ -81,6 +82,7 @@ export default function SignatureWorkspace() {
             disabled={!hasInk}
             onClick={async () => {
               try {
+                void trackEvent('tool_started','signature-maker');
                 download(await canvasBlob(canvas.current!), 'signature.png');
               } catch {
                 setError('Could not export the signature. Please try again.');

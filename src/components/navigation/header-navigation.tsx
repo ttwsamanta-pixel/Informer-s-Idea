@@ -18,17 +18,16 @@ import { ConverterMenu } from './converter-menu';
 import { Youtube } from '@/components/ui/youtube';
 import { Logo } from '@/components/layout/logo';
 import { ToolIcon } from '@/components/ui/icon';
-import { categories } from '@/config/categories';
-import { tools } from '@/config/tools';
+import { useCatalog } from '@/components/backend/catalog-context';
 import { channels } from '@/config/channels';
 import {
   menuGroups,
-  navigationMenus,
   type NavigationMenu,
 } from '@/config/navigation';
 
 function MegaPanel({ menu }: { menu: NavigationMenu }) {
-  const groups = menuGroups(menu);
+  const {tools,categories}=useCatalog();
+  const groups = menuGroups(menu,tools,categories);
   return (
     <div
       className="mega-panel"
@@ -132,6 +131,8 @@ export function HeaderNavigation({
   onTheme: () => void;
   onSearch: () => void;
 }) {
+  const {tools,categories}=useCatalog();
+  const navigationMenus=categories.map(c=>({id:c.id,label:c.id==='passport'?'Passport Photo':c.name,categoryIds:[c.id],href:'/'+c.slug,description:c.description}));
   const [open, setOpen] = useState<string | null>(null);
   const [mobile, setMobile] = useState(false);
   const header = useRef<HTMLElement>(null);

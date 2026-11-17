@@ -7,11 +7,11 @@ import {
   writePreference,
 } from '@/hooks/use-preferences';
 import { ArrowUpRight, Star, Search, ArrowRight } from 'lucide-react';
-import { tools, searchTools } from '@/config/tools';
-import { categories } from '@/config/categories';
+import { useCatalog } from '@/components/backend/catalog-context';
 import type { ToolDefinition } from '@/types/tools';
 import { ToolIcon } from '@/components/ui/icon';
 export function ToolCard({ tool }: { tool: ToolDefinition }) {
+  const {categories} = useCatalog();
   const favorites = useStoredList('favorites');
   const favorite = favorites.includes(tool.slug);
   const c = categories.find((c) => c.id === tool.category)!;
@@ -52,6 +52,7 @@ export function ToolCard({ tool }: { tool: ToolDefinition }) {
   );
 }
 export function Directory({ category }: { category?: string }) {
+  const {tools,categories} = useCatalog();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState(category || 'all');
   const [sort, setSort] = useState('default');
@@ -60,7 +61,7 @@ export function Directory({ category }: { category?: string }) {
     const query = new URLSearchParams(location.search).get('q');
     if (query) queueMicrotask(() => setQuery(query));
   }, []);
-  let results = searchTools(query).filter(
+  let results = tools.filter(t => (t.name+' '+t.shortDescription+' '+t.keywords.join(' ')).toLowerCase().includes(query.toLowerCase())).filter(
     (t) => filter === 'all' || t.category === filter,
   );
   if (sort === 'popular') results = results.filter((t) => t.popular);
@@ -129,6 +130,7 @@ export function Directory({ category }: { category?: string }) {
   );
 }
 export function RecentTools() {
+  const {tools} = useCatalog();
   const recent = useStoredList('recent');
   if (!recent.length) return null;
   return (

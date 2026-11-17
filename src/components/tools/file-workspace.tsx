@@ -1,4 +1,5 @@
 'use client';
+import { trackEvent } from '@/lib/analytics-client';
 import { useState } from 'react';
 import { CropPreview } from './crop-preview';
 import { PDFPreview } from './pdf-preview';
@@ -104,6 +105,7 @@ export default function FileWorkspace({ tool }: { tool: ToolDefinition }) {
     }
   };
   const run = async () => {
+    void trackEvent('tool_started',tool.slug);
     setBusy(true);
     setError('');
     setResults([]);

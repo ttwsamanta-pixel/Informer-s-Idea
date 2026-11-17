@@ -1,5 +1,12 @@
 'use client';
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { trackEvent } from '@/lib/analytics-client';
+import {
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -162,6 +169,7 @@ function ConverterRoute() {
     />
   );
 }
+const subscribeReady = () => () => {};
 function ConverterWorkspace({
   initialSource = '',
   initialTarget = '',
@@ -171,6 +179,11 @@ function ConverterWorkspace({
   initialTarget?: string;
   initialCategory?: FormatCategory;
 }) {
+  const ready = useSyncExternalStore(
+    subscribeReady,
+    () => true,
+    () => false,
+  );
   const [source, setSource] = useState(initialSource);
   const [target, setTarget] = useState(initialTarget);
   const [category, setCategory] = useState<FormatCategory>(initialCategory);
@@ -267,6 +280,7 @@ function ConverterWorkspace({
           getFormat(row.input)?.outputs.includes(row.target),
       )) {
         if (job.signal.aborted) break;
+        void trackEvent('tool_started', row.input + '-to-' + row.target);
         patch(row.id, {
           status: 'working',
           progress: 0,
@@ -362,18 +376,20 @@ function ConverterWorkspace({
         className="container convert-workspace"
         aria-label="File converter"
       >
-        <input
-          ref={picker}
-          type="file"
-          multiple
-          className="sr-only"
-          aria-label="Choose files to convert"
-          disabled={busy}
-          onChange={(e) => {
-            void addFiles(Array.from(e.target.files || []));
-            e.target.value = '';
-          }}
-        />
+        {ready && (
+          <input
+            ref={picker}
+            type="file"
+            multiple
+            className="sr-only"
+            aria-label="Choose files to convert"
+            disabled={busy}
+            onChange={(e) => {
+              void addFiles(Array.from(e.target.files || []));
+              e.target.value = '';
+            }}
+          />
+        )}
         <div
           className={'convert-drop ' + (drag ? 'is-dragging' : '')}
           onDragOver={(e) => {
@@ -398,7 +414,7 @@ function ConverterWorkspace({
           <p>Drag and drop here, or browse your device.</p>
           <button
             className="button primary"
-            disabled={busy}
+            disabled={busy || !ready}
             onClick={() => picker.current?.click()}
           >
             <Upload size={17} />

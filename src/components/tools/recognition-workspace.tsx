@@ -1,4 +1,5 @@
 'use client';
+import { trackEvent } from '@/lib/analytics-client';
 import { useState } from 'react';
 import type { ToolDefinition } from '@/types/tools';
 import {
@@ -45,6 +46,7 @@ export default function RecognitionWorkspace({
     }
   };
   const run = async () => {
+    void trackEvent('tool_started',tool.slug);
     setBusy(true);
     setError('');
     setText('');

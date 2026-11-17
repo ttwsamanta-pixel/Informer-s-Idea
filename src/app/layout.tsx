@@ -1,6 +1,4 @@
 import type { Metadata } from 'next';
-import { Header } from '@/components/navigation/header';
-import { Footer } from '@/components/layout/footer';
 import './globals.css';
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -30,12 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <a className="skip-link" href="#main">
-          Skip to content
-        </a>
-        <Header />
-        <main id="main">{children}</main>
-        <Footer />
+        {children}
       </body>
     </html>
   );

@@ -1,9 +1,4 @@
-// Reserved interface for a future content provider. File processors never use it.
-export interface ContentProvider {
-  getSiteNotice(): Promise<string | null>;
+export async function api<T=unknown>(path:string,options:RequestInit={}):Promise<T>{
+ const response=await fetch('/api/v1/'+path,{...options,credentials:'same-origin',headers:{'Content-Type':'application/json',...options.headers}});
+ const json=await response.json();if(!response.ok||!json.success)throw new Error(json.message||'Request failed.');return json.data as T;
 }
-export const localContentProvider: ContentProvider = {
-  async getSiteNotice() {
-    return null;
-  },
-};

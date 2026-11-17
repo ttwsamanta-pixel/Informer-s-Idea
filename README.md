@@ -37,6 +37,10 @@ For a reproducible install use `npm ci`. The postinstall script copies the match
 
 ## Architecture
 
+Phase 2 adds an optional MySQL backend inside this same Node.js application. Start with [the Hostinger database/admin setup guide](docs/PHASE2-SETUP.md), [API reference](docs/PHASE2-API.md), and [architecture audit](docs/PHASE2-AUDIT.md). `/admin` uses authenticated sessions and server-checked permissions. Public content uses MySQL when configured and the existing registry otherwise. Conversion engines still process files in the browser.
+
+The admin design follows the supplied navy/purple dashboard references. Metrics use real recorded activity, not demo counts. Production database, SMTP and Google credentials must be configured before their features can run; payment processing and premium enforcement remain disabled. The setup guide lists subsequent modules explicitly.
+
 `src/config/tools.ts` is the typed registry that drives routing, search, directory cards, category counts, related tools and metadata. `src/config/categories.ts` defines categories. Each tool points to a processor family and operation. Add a definition and processor implementation to add a tool.
 
 UI workspaces live in `src/components/tools`. Processing logic lives in `src/lib/processing`. Heavy tool screens are dynamically loaded; PDF.js, Tesseract, QR libraries and AI models are loaded only when used. PDF.js and Tesseract use workers. Image batches run sequentially to bound memory. No API route receives user files.

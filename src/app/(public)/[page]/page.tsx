@@ -1,9 +1,9 @@
+import { catalog, pageSEO } from '@/server/content';
 import ConverterHub from '@/components/tools/converter-hub';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { categories } from '@/config/categories';
-import { tools } from '@/config/tools';
 import { Directory } from '@/components/tools/directory';
 import { FAQ } from '@/components/ui/faq';
 import { ContactForm } from '@/components/layout/contact';
@@ -22,7 +22,7 @@ const information: Record<
       ],
       [
         'Privacy is part of the design',
-        'Your files are processed in your browser. We have no file upload server, no user database, and no account requirement. Files are not stored by us.',
+        'Your files are processed in your browser. Tool files are not uploaded or stored by us. Administration uses a separate account database; the free browser tools do not require an account.',
       ],
       [
         'Built for your real day',
@@ -49,7 +49,7 @@ const information: Record<
       ],
       [
         'Hosting and links',
-        'Your hosting provider may retain ordinary access logs. This phase has no analytics, advertising network, newsletter subscription, or tracking integration. External links have their own policies.',
+        'Your hosting provider may retain ordinary access logs. When enabled, optional analytics records page paths, tool IDs, anonymous visitor/session IDs, device category and referral source only after your consent. It never includes your files, form contents or URL query strings. Use Privacy preferences to withdraw consent. Detailed events follow the configured retention period. Administrators have secured account and audit records. Active ad placements may load third-party resources. External links have their own policies.',
       ],
     ],
   },
@@ -103,16 +103,17 @@ export async function generateMetadata({
   params: Promise<{ page: string }>;
 }): Promise<Metadata> {
   const { page } = await params;
+  const { categories } = await catalog();
   const c = categories.find((c) => c.slug === page);
   const info = information[page];
-  return {
+  return pageSEO('/' + page, {
     alternates: { canonical: '/' + page },
     title:
       c?.name ||
       info?.title ||
       (page === 'contact' ? 'Contact' : 'Page not found'),
     description: c?.description || info?.description,
-  };
+  });
 }
 export default async function CategoryPage({
   params,
@@ -120,6 +121,7 @@ export default async function CategoryPage({
   params: Promise<{ page: string }>;
 }) {
   const { page } = await params;
+  const { categories, tools } = await catalog();
   const category = categories.find((c) => c.slug === page);
   if (category?.id === 'converter') return <ConverterHub />;
   if (category)

@@ -46,7 +46,8 @@ export function ToolWorkspace({ tool }: { tool: ToolDefinition }) {
       ),
     );
   }, [tool.slug]);
-  if (tool.slug === 'edit-pdf') return <VisualPDFEditor />;
+  if (tool.component === 'pdf' && tool.operation === 'edit')
+    return <VisualPDFEditor />;
   switch (tool.component) {
     case 'image':
     case 'pdf':

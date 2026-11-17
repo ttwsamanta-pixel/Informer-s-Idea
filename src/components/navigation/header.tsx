@@ -6,9 +6,11 @@ import { readPreference, writePreference } from '@/hooks/use-preferences';
 import { Search, X, ArrowUpRight } from 'lucide-react';
 import { HeaderNavigation } from './header-navigation';
 
-import { searchTools, tools } from '@/config/tools';
+import { useCatalog } from '@/components/backend/catalog-context';
 import { ToolIcon } from '@/components/ui/icon';
 export function Header() {
+  const {tools}=useCatalog();
+  const searchTools=(q:string)=>tools.filter(t=>(t.name+' '+t.shortDescription).toLowerCase().includes(q.toLowerCase()));
   const router = useRouter();
   const [dark, setDark] = useState(false);
   const [query, setQuery] = useState('');

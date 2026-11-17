@@ -1,4 +1,5 @@
 'use client';
+import { trackEvent } from '@/lib/analytics-client';
 import { useState } from 'react';
 import { QrCode, Download } from 'lucide-react';
 import type { ToolDefinition } from '@/types/tools';
@@ -198,6 +199,7 @@ export default function QRWorkspace({ tool }: { tool: ToolDefinition }) {
               setError('');
               setBusy(true);
               try {
+                void trackEvent('tool_started',tool.slug);
                 const payload = qrPayload(op, settings);
                 const QR = await import('qrcode');
                 const options = {

@@ -1,4 +1,5 @@
 'use client';
+import { trackEvent } from '@/lib/analytics-client';
 import { useEffect, useRef, useState } from 'react';
 import type { ToolDefinition } from '@/types/tools';
 import {
@@ -239,6 +240,7 @@ export default function PassportWorkspace({ tool }: { tool: ToolDefinition }) {
             className="button primary full-width"
             disabled={busy || !files.length}
             onClick={async () => {
+              void trackEvent('tool_started',tool.slug);
               setBusy(true);
               setError('');
               try {

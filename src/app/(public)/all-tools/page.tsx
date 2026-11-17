@@ -1,12 +1,16 @@
+import { pageSEO } from '@/server/content';
 import { Directory } from '@/components/tools/directory';
-import { tools } from '@/config/tools';
-export const metadata = {
-  alternates: { canonical: '/all-tools' },
-  title: 'All Free Online Tools',
-  description:
-    'Browse free image, PDF, OCR, QR, passport and everyday tools. Search by task and process your files locally.',
-};
-export default function AllTools() {
+import { catalog } from '@/server/content';
+export async function generateMetadata() {
+  return pageSEO('/all-tools', {
+    alternates: { canonical: '/all-tools' },
+    title: 'All Free Online Tools',
+    description:
+      'Browse free image, PDF, OCR, QR, passport and everyday tools. Search by task and process your files locally.',
+  });
+}
+export default async function AllTools() {
+  const { tools } = await catalog();
   return (
     <>
       <section className="page-intro">

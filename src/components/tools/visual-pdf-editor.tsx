@@ -1,4 +1,5 @@
 'use client';
+import { trackEvent } from '@/lib/analytics-client';
 import {
   useCallback,
   useEffect,
@@ -391,6 +392,7 @@ export default function VisualPDFEditor() {
     );
   };
   const save = async () => {
+    void trackEvent('tool_started','edit-pdf');
     if (!file) return;
     if (draft) {
       setError('Apply or cancel the selected object before downloading.');

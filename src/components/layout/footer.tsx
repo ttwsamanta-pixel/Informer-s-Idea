@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import { ShieldCheck, ArrowUpRight } from 'lucide-react';
 import { Logo } from './logo';
-import { categories } from '@/config/categories';
+import { catalog } from '@/server/content';
 import { channels } from '@/config/channels';
-export function Footer() {
+export async function Footer() {
+  const {categories}=await catalog();
   return (
     <footer className="site-footer">
       <div className="container footer-grid">

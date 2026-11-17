@@ -14,7 +14,8 @@ export interface MenuGroup {
   category: (typeof categories)[number];
   items: ToolDefinition[];
 }
-export function menuGroups(menu: NavigationMenu): MenuGroup[] {
+export function menuGroups(menu: NavigationMenu, availableTools = tools, availableCategories: typeof categories[number][] = [...categories]): MenuGroup[] {
+  const tools=availableTools,categories=availableCategories;
   if (menu.id === 'image' || menu.id === 'pdf') {
     const category = categories.find((c) => c.id === menu.id)!;
     const definitions =

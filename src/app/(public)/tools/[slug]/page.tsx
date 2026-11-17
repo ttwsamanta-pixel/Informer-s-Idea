@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
-import { tools, findTool } from '@/config/tools';
-import { categories } from '@/config/categories';
+import { tools } from '@/config/tools';
+import { catalog, pageSEO } from '@/server/content';
+import { AdSlot } from '@/components/ui/ads';
 import { ToolStructuredData } from '@/components/tools/structured-data';
 import { ToolWorkspace } from '@/components/tools/tool-workspace';
 import { ToolCard } from '@/components/tools/directory';
@@ -16,9 +17,11 @@ export async function generateMetadata({
 }: {
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
+  const { tools } = await catalog();
+  const findTool = (slug: string) => tools.find((t) => t.slug === slug);
   const t = findTool((await params).slug);
   return t
-    ? {
+    ? pageSEO('/tools/' + t.slug, {
         alternates: { canonical: '/tools/' + t.slug },
         title: { absolute: t.seoTitle },
         description: t.seoDescription,
@@ -28,7 +31,7 @@ export async function generateMetadata({
           title: t.seoTitle,
           description: t.seoDescription,
         },
-      }
+      })
     : {};
 }
 export default async function ToolPage({
@@ -36,6 +39,8 @@ export default async function ToolPage({
 }: {
   params: Promise<{ slug: string }>;
 }) {
+  const { tools, categories } = await catalog();
+  const findTool = (slug: string) => tools.find((t) => t.slug === slug);
   const t = findTool((await params).slug);
   if (!t) notFound();
   const c = categories.find((c) => c.id === t.category)!;
@@ -63,7 +68,9 @@ export default async function ToolPage({
           categoryName={c.name}
           categorySlug={c.slug}
         />
+        <AdSlot placement="tool-top" />
         <ToolWorkspace tool={t} />
+        <AdSlot placement="tool-bottom" />
         <FAQ
           items={[
             {

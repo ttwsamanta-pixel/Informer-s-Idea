@@ -1,12 +1,16 @@
+import { pageSEO } from '@/server/content';
 import Link from 'next/link';
-import { articles } from '@/config/articles';
-export const metadata = {
-  alternates: { canonical: '/blog' },
-  title: 'Tips & Guides',
-  description:
-    'Practical guides to image compression, PDF merging, and passport photo dimensions.',
-};
-export default function Blog() {
+import { blog } from '@/server/content';
+export async function generateMetadata() {
+  return pageSEO('/blog', {
+    alternates: { canonical: '/blog' },
+    title: 'Tips & Guides',
+    description:
+      'Practical guides to image compression, PDF merging, and passport photo dimensions.',
+  });
+}
+export default async function Blog() {
+  const articles = await blog();
   return (
     <>
       <section className="page-intro">

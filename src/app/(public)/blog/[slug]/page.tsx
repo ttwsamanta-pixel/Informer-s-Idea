@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { articles } from '@/config/articles';
+import { blog, pageSEO } from '@/server/content';
 export function generateStaticParams() {
   return articles.map((a) => ({ slug: a.slug }));
 }
@@ -10,12 +11,13 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const articles = await blog();
   const a = articles.find((a) => a.slug === slug);
-  return {
+  return pageSEO('/blog/' + slug, {
     alternates: { canonical: '/blog/' + slug },
     title: a?.title,
     description: a?.description,
-  };
+  });
 }
 export default async function Article({
   params,
@@ -23,6 +25,7 @@ export default async function Article({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const articles = await blog();
   const a = articles.find((a) => a.slug === slug);
   if (!a) notFound();
   return (
@@ -42,15 +45,25 @@ export default async function Article({
         </div>
       </section>
       <article className="container prose">
+        {a.featuredImage && (
+          <img
+            src={a.featuredImage}
+            alt={a.title}
+            style={{ maxWidth: '100%' }}
+          />
+        )}
+        {a.author && <p>By {a.author}</p>}
         {a.sections.map(([title, text]) => (
           <section key={title}>
             <h2>{title}</h2>
             <p>{text}</p>
           </section>
         ))}
-        <Link className="button primary" href={'/tools/' + a.tool}>
-          Try the tool →
-        </Link>
+        {a.tool && (
+          <Link className="button primary" href={'/tools/' + a.tool}>
+            Try the tool →
+          </Link>
+        )}
       </article>
     </>
   );

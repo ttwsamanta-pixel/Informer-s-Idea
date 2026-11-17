@@ -175,11 +175,13 @@ test('each resize preset applies exact dimensions and produces the chosen output
   await page.goto('/tools/resize-image');
   for (const preset of resizePresets)
     await expect(
-      page.getByRole('button', { name: new RegExp('^' + preset.name + ' ') }),
+      page
+        .locator('main')
+        .getByRole('button', { name: new RegExp('^' + preset.name + ' ') }),
     ).toBeDisabled();
   await uploadPhoto(page);
   for (const preset of resizePresets) {
-    const button = page.getByRole('button', {
+    const button = page.locator('main').getByRole('button', {
       name: new RegExp('^' + preset.name + ' '),
     });
     await button.click();
@@ -250,7 +252,7 @@ test('header exposes each tool category and keeps informational links in footer'
     await expect(
       page
         .getByLabel(label + ' menu', { exact: true })
-        .locator('a[href^="/tools/"]')
+        .locator('a[href^="/tools/"], a[href^="/converter-tools?"]')
         .first(),
     ).toBeVisible();
   }
