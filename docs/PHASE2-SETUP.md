@@ -80,6 +80,10 @@ References: [Google OAuth web-server flow](https://developers.google.com/identit
 
 ### Analytics and ads
 
+Google Analytics 4 is connected to public stream `G-MDY2R8G1ET`. The script loads only after the existing analytics consent and only when admin analytics is enabled; DNT/GPC prevent loading. No GTM container or additional environment variable is needed. Enhanced Measurement handles page views (including history changes); do not add a second page-view tag. Custom `tool_started` events carry only a tool ID. Withdrawal disables GA, clears its first-party cookies, and reloads to unload automatic listeners. The privacy notice discloses Google collection. Keep automatic form/download tracking disabled for file tools; site search is optional and may include URL search terms. Google reporting and retention are separate from the built-in MySQL dashboard.
+
+After deployment, accept analytics in a fresh public-site browser session and check GA4 Realtime. Declining must produce no Google tag requests. Admin pages do not load the integration. No historical visits are backfilled.
+
 Enable analytics in admin Settings after configuring its secret. Visitors can allow or decline tracking and withdraw consent. Events contain page/tool IDs and coarse device/referrer categories, never uploaded files or file names. Browser privacy signals are respected. Country data requires a trusted hosting header.
 
 Ad slots support active/inactive state, placement, dates and device targeting. HTML ads run in sandboxed frames; scripts requiring top-level DOM access may not work. Campaign records are managed separately; automated campaign delivery, ad click/impression reporting, and payment settlement are not implemented.
