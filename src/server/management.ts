@@ -147,6 +147,14 @@ export async function saveSettings(body: unknown) {
       logo: safeURL.default(''),
       favicon: safeURL.default(''),
       tagline: z.string().max(150).default(''),
+      contactEmail: z.union([z.email().max(254), z.literal('')]).default(''),
+      contactMobile: z
+        .string()
+        .trim()
+        .max(40)
+        .regex(/^[+0-9 ()-]*$/)
+        .default(''),
+      contactAddress: z.string().trim().max(1000).default(''),
       ...Object.fromEntries(
         [
           'facebook',

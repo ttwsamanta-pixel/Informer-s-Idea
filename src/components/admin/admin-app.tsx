@@ -645,6 +645,7 @@ function Fields({ fields, initial = {} }: { fields: Field[]; initial?: Row }) {
               id={'field-' + f.key}
               name={f.key}
               required={f.required}
+              readOnly={f.readOnly}
               rows={f.key === 'content' ? 12 : 3}
               defaultValue={String(initial[f.key] || '')}
             />
@@ -653,6 +654,7 @@ function Fields({ fields, initial = {} }: { fields: Field[]; initial?: Row }) {
               id={'field-' + f.key}
               name={f.key}
               required={f.required}
+              readOnly={f.readOnly}
               type={f.type === 'date' ? 'datetime-local' : f.type || 'text'}
               min={f.type === 'number' ? 0 : undefined}
               step={f.type === 'number' ? 'any' : undefined}
@@ -665,8 +667,7 @@ function Fields({ fields, initial = {} }: { fields: Field[]; initial?: Row }) {
   );
 }
 function ResourceEditor({ resource }: { resource: string }) {
-  const config = resources[resource],
-    fields = config.fields;
+  const config = resources[resource];
   const [q, setQ] = useState(() =>
       typeof window !== 'undefined'
         ? new URLSearchParams(location.search).get('q') || ''
@@ -677,6 +678,14 @@ function ResourceEditor({ resource }: { resource: string }) {
     [edit, setEdit] = useState<Row | null>(null),
     [error, setError] = useState(''),
     [busy, setBusy] = useState(false);
+  const fields = config.fields.filter(
+    (f) =>
+      !(
+        resource === 'seo' &&
+        ['/', '/contact'].includes(String(edit?.slug)) &&
+        ['name', 'slug', 'pageTitle', 'description', 'content'].includes(f.key)
+      ),
+  );
   const state = useData<{ items: Row[]; total: number }>(
     'admin/resources/' +
       resource +
@@ -689,10 +698,12 @@ function ResourceEditor({ resource }: { resource: string }) {
         title={config.title}
         subtitle="Manage the content that appears on your website."
       >
-        <button className="admin-primary" onClick={() => setEdit({})}>
-          <Plus size={17} />
-          Add {resource === 'posts' ? 'post' : 'record'}
-        </button>
+        {resource !== 'messages' && (
+          <button className="admin-primary" onClick={() => setEdit({})}>
+            <Plus size={17} />
+            Add {resource === 'posts' ? 'post' : 'record'}
+          </button>
+        )}
       </Heading>
       <ErrorNotice message={error || state.error} />
       {resource === 'tools' && (
@@ -811,7 +822,13 @@ function ResourceEditor({ resource }: { resource: string }) {
               setBusy(true);
               setError('');
               const f = new FormData(e.currentTarget),
-                body: Row = { status: f.get('status') };
+                body: Row = {
+                  status: f.get('status'),
+                  ...(resource === 'seo' &&
+                  ['/', '/contact'].includes(String(edit.slug))
+                    ? { name: edit.name, slug: edit.slug }
+                    : {}),
+                };
               fields.forEach((field) => {
                 body[field.key] =
                   field.type === 'checkbox'
@@ -950,6 +967,9 @@ function Management({ section }: { section: string }) {
                     ogImage: f.get('ogImage'),
                     ...Object.fromEntries(
                       [
+                        'contactEmail',
+                        'contactMobile',
+                        'contactAddress',
                         'logo',
                         'favicon',
                         'tagline',
@@ -974,6 +994,13 @@ function Management({ section }: { section: string }) {
                   initial={data as Row}
                   fields={[
                     { key: 'siteTitle', label: 'Site title', required: true },
+                    { key: 'contactEmail', label: 'Contact email' },
+                    { key: 'contactMobile', label: 'Contact mobile number' },
+                    {
+                      key: 'contactAddress',
+                      label: 'Contact address',
+                      type: 'textarea',
+                    },
                     { key: 'logo', label: 'Website logo', type: 'image' },
                     { key: 'favicon', label: 'Favicon', type: 'image' },
                     { key: 'tagline', label: 'Logo tagline' },

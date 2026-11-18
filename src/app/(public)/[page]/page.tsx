@@ -7,7 +7,7 @@ import type { Metadata } from 'next';
 import { categories } from '@/config/categories';
 import { Directory } from '@/components/tools/directory';
 import { FAQ } from '@/components/ui/faq';
-import { ContactForm } from '@/components/layout/contact';
+import { ContactPage } from '@/components/layout/contact-page';
 import { information } from '@/config/information';
 import { contentPage } from '@/server/content';
 import { cleanContent } from '@/lib/content-html';
@@ -115,26 +115,7 @@ export default async function CategoryPage({
         </section>
       </>
     );
-  if (page === 'contact' && pageContent)
-    return (
-      <>
-        <section className="page-intro">
-          <div className="container">
-            <span className="eyebrow">LET’S MAKE THIS BETTER</span>
-            <h1>{pageContent.title}</h1>
-            <p>{pageContent.description}</p>
-          </div>
-        </section>
-        <section className="container prose">
-          <div
-            dangerouslySetInnerHTML={{
-              __html: cleanContent(pageContent.content),
-            }}
-          />
-          <ContactForm />
-        </section>
-      </>
-    );
+  if (page === 'contact') return <ContactPage />;
   const info = await contentPage(page);
   if (!info) notFound();
   return (

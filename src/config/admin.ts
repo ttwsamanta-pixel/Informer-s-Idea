@@ -13,6 +13,7 @@ export type Field = {
     | 'richtext';
   options?: string[];
   required?: boolean;
+  readOnly?: boolean;
 };
 const name: Field = { key: 'name', label: 'Name', required: true };
 const slug: Field = { key: 'slug', label: 'URL slug', required: true };
@@ -37,6 +38,19 @@ export const resources: Record<
     statuses: string[];
   }
 > = {
+  messages: {
+    title: 'Contact messages',
+    table: 'ssinfo_contact_messages',
+    permission: 'settings',
+    statuses: ['new', 'read', 'replied'],
+    fields: [
+      { ...name, readOnly: true },
+      { ...slug, readOnly: true },
+      { key: 'email', label: 'Email', readOnly: true },
+      { key: 'mobile', label: 'Mobile number', readOnly: true },
+      { key: 'message', label: 'Message', type: 'textarea', readOnly: true },
+    ],
+  },
   tools: {
     title: 'Tools',
     table: 'ssinfo_tools',
@@ -297,6 +311,7 @@ export const adminNavigation = [
     icon: 'Settings',
     children: [
       ['General & branding', 'settings'],
+      ['Contact messages', 'messages'],
       ['Activity log', 'audit'],
     ],
   },

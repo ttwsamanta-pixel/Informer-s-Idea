@@ -163,18 +163,6 @@ async function main() {
         },
       },
       { path: '/', name: 'Home', data: {} },
-      { path: '/all-tools', name: 'All Tools', data: {} },
-      { path: '/blog', name: 'Blog', data: {} },
-      ...categories.map((c) => ({
-        path: '/' + c.slug,
-        name: c.name,
-        data: {},
-      })),
-      ...tools.map((t) => ({
-        path: '/tools/' + t.slug,
-        name: t.name,
-        data: {},
-      })),
     ];
     for (const p of pageSeeds)
       await c.execute(

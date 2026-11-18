@@ -23,7 +23,12 @@ await call('auth/login', 'POST', {
   password: process.env.TEST_ADMIN_PASSWORD,
 });
 const pages = await call('admin/resources/seo');
-assert.ok(pages.total > 90);
+assert.ok(pages.total > 3 && pages.total < 20);
+assert.ok(
+  pages.items.every(
+    (p) => !p.slug.startsWith('/tools/') && !p.slug.endsWith('-tools'),
+  ),
+);
 const png = await sharp({
   create: { width: 180, height: 90, channels: 4, background: '#7733ff' },
 })
@@ -60,14 +65,32 @@ assert.ok(html.includes('CMS SEO Title'));
 assert.ok(html.includes('cms, test') || html.includes('cms,test'));
 assert.ok(html.includes(image));
 assert.ok(!html.includes('<script>alert(1)</script>'));
+await call('public/contact', 'POST', {
+  name: 'Contact Test',
+  email: 'contact@example.test',
+  mobile: '+91 1234567890',
+  message: 'Testing contact inbox delivery.',
+});
+const inbox = await call('admin/resources/messages');
+const msg = inbox.items.find((m) => m.name === 'Contact Test');
+assert.ok(msg);
+await call('admin/resources/messages/' + msg.id, 'PATCH', { status: 'read' });
+await call('admin/resources/messages/' + msg.id, 'DELETE');
 const config = await call('admin/settings');
 await call('admin/settings', 'PUT', {
   ...config,
+  contactEmail: 'hello@example.test',
+  contactMobile: '+91 1234567890',
+  contactAddress: 'Test address',
   logo: image,
   favicon: image,
   facebook: 'https://facebook.com/example',
   youtubeBangla: 'https://youtube.com/@test',
 });
+const contact = await (await api.get('/contact')).text();
+assert.ok(
+  contact.includes('hello@example.test') && contact.includes('Test address'),
+);
 const home = await (await api.get('/')).text();
 assert.ok(home.includes(image));
 assert.ok(home.includes('https://facebook.com/example'));

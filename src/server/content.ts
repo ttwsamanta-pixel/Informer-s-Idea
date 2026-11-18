@@ -215,6 +215,7 @@ export async function pageSEO(
 }
 
 export async function contentPage(slug: string) {
+  if (slug === '' || slug === 'contact') return null;
   if (!databaseConfigured()) {
     const info = information[slug];
     if (info)

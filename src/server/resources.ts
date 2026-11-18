@@ -38,7 +38,11 @@ export async function listResource(key: string, url: URL) {
     q = (url.searchParams.get('q') || '').slice(0, 100),
     status = url.searchParams.get('status');
   const where =
-    "WHERE status<>'deleted' AND name LIKE ?" + (status ? ' AND status=?' : '');
+    "WHERE status<>'deleted' AND name LIKE ?" +
+    (status ? ' AND status=?' : '') +
+    (key === 'seo'
+      ? " AND slug NOT LIKE '/tools/%' AND slug NOT LIKE '/blog/%' AND slug NOT IN ('/blog','/all-tools') AND slug NOT IN (SELECT CONCAT('/',slug) FROM ssinfo_tool_categories)"
+      : '');
   const values: unknown[] = ['%' + q + '%', ...(status ? [status] : [])];
   const [count] = await query<{ total: number }>(
     `SELECT COUNT(*) AS total FROM ${r.table} ${where}`,
@@ -54,6 +58,22 @@ export async function saveResource(key: string, body: unknown, id?: string) {
   const r = Object.hasOwn(resources, key) ? resources[key] : undefined;
   if (!r) throw new HttpError(404, 'Resource not found.');
   const user = await requireUser(r.permission);
+  if (key === 'messages') {
+    if (!id)
+      throw new HttpError(
+        405,
+        'Messages are submitted through the contact form.',
+      );
+    const { status } = z
+      .object({ status: z.enum(['new', 'read', 'replied']) })
+      .parse(body);
+    await execute(
+      'UPDATE ssinfo_contact_messages SET status=? WHERE id=? AND status<>?',
+      [status, id, 'deleted'],
+    );
+    await audit(user.id, 'update-message', id);
+    return { id, status };
+  }
   const shape: Record<string, z.ZodType> = {
     name: z.string().trim().min(1).max(190),
     slug: key === 'seo' ? localPath : slugSchema,
@@ -108,8 +128,24 @@ export async function saveResource(key: string, body: unknown, id?: string) {
     !/^\/[a-z0-9-]+$/.test(String(data.slug))
   )
     throw new HttpError(400, 'Use a public page path.');
-  if (key === 'seo' && ['/admin', '/api', '/tools'].includes(String(data.slug)))
+  if (
+    key === 'seo' &&
+    (String(data.slug).split('/').length > 2 ||
+      ['/admin', '/api', '/tools', '/blog', '/all-tools'].includes(
+        String(data.slug),
+      ) ||
+      (
+        await query('SELECT id FROM ssinfo_tool_categories WHERE slug=?', [
+          String(data.slug).slice(1),
+        ])
+      ).length)
+  )
     throw new HttpError(400, 'This path is reserved.');
+  if (key === 'seo' && ['/', '/contact'].includes(String(data.slug))) {
+    delete data.content;
+    delete data.description;
+    delete data.pageTitle;
+  }
   for (const field of ['publishDate', 'startDate', 'endDate'])
     if (data[field] && !Number.isFinite(Date.parse(String(data[field]))))
       throw new HttpError(400, 'Enter a valid date.');

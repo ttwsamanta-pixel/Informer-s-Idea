@@ -1,3 +1,4 @@
+import { submitContact } from '@/server/contact';
 import { uploadImage, serveImage } from '@/server/media';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -72,6 +73,8 @@ async function handle(
     if (!['GET', 'HEAD'].includes(method)) checkOrigin(req);
     if (path[0] === 'media' && path.length === 2 && method === 'GET')
       return serveImage(path[1]);
+    if (route === 'public/contact' && method === 'POST')
+      return respond(await submitContact(req));
     if (route === 'admin/media' && method === 'POST')
       return respond(await uploadImage(req));
     if (route === 'auth/me' && method === 'GET')
