@@ -19,15 +19,13 @@ import { Youtube } from '@/components/ui/youtube';
 import { Logo } from '@/components/layout/logo';
 import { ToolIcon } from '@/components/ui/icon';
 import { useCatalog } from '@/components/backend/catalog-context';
+import { useBranding } from '@/components/backend/branding-context';
 import { channels } from '@/config/channels';
-import {
-  menuGroups,
-  type NavigationMenu,
-} from '@/config/navigation';
+import { menuGroups, type NavigationMenu } from '@/config/navigation';
 
 function MegaPanel({ menu }: { menu: NavigationMenu }) {
-  const {tools,categories}=useCatalog();
-  const groups = menuGroups(menu,tools,categories);
+  const { tools, categories } = useCatalog();
+  const groups = menuGroups(menu, tools, categories);
   return (
     <div
       className="mega-panel"
@@ -93,13 +91,18 @@ function MegaPanel({ menu }: { menu: NavigationMenu }) {
   );
 }
 function ChannelLinks() {
+  const branding = useBranding();
   return (
     <>
       {channels.map((channel) => (
         <a
           key={channel.handle}
           className="channel-card"
-          href={channel.url}
+          href={
+            (channel.handle.includes('bangla')
+              ? branding.youtubeBangla
+              : branding.youtube) || channel.url
+          }
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -131,8 +134,14 @@ export function HeaderNavigation({
   onTheme: () => void;
   onSearch: () => void;
 }) {
-  const {tools,categories}=useCatalog();
-  const navigationMenus=categories.map(c=>({id:c.id,label:c.id==='passport'?'Passport Photo':c.name,categoryIds:[c.id],href:'/'+c.slug,description:c.description}));
+  const { tools, categories } = useCatalog();
+  const navigationMenus = categories.map((c) => ({
+    id: c.id,
+    label: c.id === 'passport' ? 'Passport Photo' : c.name,
+    categoryIds: [c.id],
+    href: '/' + c.slug,
+    description: c.description,
+  }));
   const [open, setOpen] = useState<string | null>(null);
   const [mobile, setMobile] = useState(false);
   const header = useRef<HTMLElement>(null);

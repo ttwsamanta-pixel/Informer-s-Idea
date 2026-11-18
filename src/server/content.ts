@@ -1,3 +1,5 @@
+import { information } from '@/config/information';
+import { cleanContent, textContent } from '@/lib/content-html';
 import 'server-only';
 import { cache } from 'react';
 import { query, databaseConfigured } from './db';
@@ -104,6 +106,7 @@ export interface Article {
   category: string;
   minutes: number;
   sections: string[][];
+  content?: string;
   tool?: string;
   featuredImage?: string;
   author?: string;
@@ -128,6 +131,10 @@ export async function blog(): Promise<Article[]> {
       sections: String(p.content || '')
         .split(/\n\n+/)
         .map((text) => ['', text]),
+      content:
+        p.contentFormat === 'html'
+          ? cleanContent(String(p.content || ''))
+          : textContent(String(p.content || '')),
       featuredImage: String(p.featuredImage || ''),
       author: String(p.author || ''),
     }));
@@ -143,7 +150,7 @@ export async function pageSEO(
   );
   const config = await settings();
   let p: Record<string, unknown> = row ? unpack(row) : {};
-  if (!row) {
+  {
     const table = path.startsWith('/blog/')
       ? 'ssinfo_blog_posts'
       : path.startsWith('/tools/')
@@ -154,7 +161,13 @@ export async function pageSEO(
       `SELECT * FROM ${table} WHERE slug=?`,
       [slug],
     );
-    if (content) p = unpack(content);
+    if (content)
+      p = {
+        ...unpack(content),
+        ...Object.fromEntries(
+          Object.entries(p).filter(([, v]) => v !== '' && v !== undefined),
+        ),
+      };
   }
   if (!Object.keys(p).length)
     return {
@@ -164,6 +177,10 @@ export async function pageSEO(
   return {
     ...fallback,
     title: p.seoTitle ? { absolute: String(p.seoTitle) } : fallback.title,
+    keywords: String(p.seoKeywords || p.keywords || '')
+      .split(',')
+      .map((v) => v.trim())
+      .filter(Boolean),
     description: String(p.seoDescription || fallback.description || ''),
     alternates: { canonical: String(p.canonical || path) },
     robots: {
@@ -171,9 +188,72 @@ export async function pageSEO(
       follow: true,
     },
     openGraph: {
-      title: String(p.ogTitle || p.seoTitle || ''),
-      description: String(p.ogDescription || p.seoDescription || ''),
-      ...(p.ogImage ? { images: [String(p.ogImage)] } : {}),
+      ...fallback.openGraph,
+      ...(p.ogTitle || p.seoTitle
+        ? { title: String(p.ogTitle || p.seoTitle) }
+        : {}),
+      description: String(
+        p.ogDescription || p.seoDescription || fallback.description || '',
+      ),
+      ...(p.ogImage || config.ogImage
+        ? { images: [String(p.ogImage || config.ogImage)] }
+        : {}),
     },
+    twitter: {
+      ...fallback.twitter,
+      ...(p.ogTitle || p.seoTitle
+        ? { title: String(p.ogTitle || p.seoTitle) }
+        : {}),
+      description: String(
+        p.ogDescription || p.seoDescription || fallback.description || '',
+      ),
+      ...(p.ogImage || config.ogImage
+        ? { images: [String(p.ogImage || config.ogImage)] }
+        : {}),
+    },
+  };
+}
+
+export async function contentPage(slug: string) {
+  if (!databaseConfigured()) {
+    const info = information[slug];
+    if (info)
+      return {
+        title: info.title,
+        description: info.description,
+        content: info.sections
+          .map(([h, p]) => `<h2>${h}</h2>${textContent(p)}`)
+          .join(''),
+      };
+    if (slug === 'contact')
+      return {
+        title: 'Have an idea? We are listening.',
+        description: 'Get in touch with Informers Idea.',
+        content: '',
+      };
+    return null;
+  }
+  const [row] = await query<RecordRow>(
+    "SELECT * FROM ssinfo_seo_pages WHERE slug=? AND status='active'",
+    ['/' + slug],
+  );
+  if (!row) return null;
+  const p = unpack(row);
+  return {
+    title: String(
+      p.pageTitle ||
+        (information[slug] ||
+        ![
+          '',
+          'all-tools',
+          'blog',
+          ...builtInCategories.map((c) => c.slug),
+        ].includes(slug)
+          ? p.name
+          : '') ||
+        '',
+    ),
+    description: String(p.description || ''),
+    content: cleanContent(String(p.content || '')),
   };
 }

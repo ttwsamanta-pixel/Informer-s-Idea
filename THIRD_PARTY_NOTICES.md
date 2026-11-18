@@ -17,3 +17,11 @@ Do not remove copyright or license notices from distributed dependencies. The AI
 - Noto Sans and Noto Sans Bengali from `@fontsource` 5.3.0: SIL Open Font License 1.1. Unmodified Latin and Bengali WOFF subsets are copied for document PDF export. Full copyright/license notices accompany them in `/workers/fonts/`.
 
 - `regenerator-runtime` 0.14.1: MIT. Used by the font shaping engine for document text export.
+
+## CKEditor 5 (admin content editor)
+
+CKEditor 5 and its React integration are self-hosted. The editor uses the free GPL configuration (`licenseKey: 'GPL'`) and standard features only. CKEditor 5 is licensed under GPL-2.0-or-later or a commercial license. Using the free edition requires compliance with its GPL terms; this notice does not relicense the application or establish that the entire project is GPL-compatible. A commercial license key can instead be provided through `NEXT_PUBLIC_CKEDITOR_LICENSE_KEY` before building.
+
+Official licensing information: https://ckeditor.com/docs/ckeditor5/latest/getting-started/licensing/license-and-legal.html
+
+Image processing uses sharp (Apache-2.0); rich HTML is sanitized with sanitize-html (MIT). Package license texts are included in their installed packages.

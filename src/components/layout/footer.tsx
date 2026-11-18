@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { ShieldCheck, ArrowUpRight } from 'lucide-react';
 import { Logo } from './logo';
-import { catalog } from '@/server/content';
+import { catalog, settings } from '@/server/content';
 import { channels } from '@/config/channels';
 export async function Footer() {
-  const {categories}=await catalog();
+  const { categories } = await catalog();
+  const config = await settings();
   return (
     <footer className="site-footer">
       <div className="container footer-grid">
@@ -19,10 +20,30 @@ export async function Footer() {
           <span className="footer-privacy">
             <ShieldCheck size={16} /> Your files stay yours.
           </span>
+          <div className="footer-socials">
+            {['facebook', 'instagram', 'x', 'linkedin']
+              .filter((k) => config[k])
+              .map((k) => (
+                <a
+                  key={k}
+                  href={String(config[k])}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {k === 'x' ? 'X' : k[0].toUpperCase() + k.slice(1)}
+                </a>
+              ))}
+          </div>
           <div className="footer-channels" aria-label="YouTube channels">
             {channels.map((channel) => (
               <a
-                href={channel.url}
+                href={String(
+                  config[
+                    channel.handle.includes('bangla')
+                      ? 'youtubeBangla'
+                      : 'youtube'
+                  ] || channel.url,
+                )}
                 key={channel.handle}
                 target="_blank"
                 rel="noopener noreferrer"

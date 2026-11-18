@@ -12,18 +12,18 @@ Keep the password in hPanel/private environment configuration, never in chat or 
 
 Under the **.com application's Environment variables**, set:
 
-| Key | Value |
-| --- | --- |
-| `APP_URL` | `https://informersidea.com` |
-| `NEXT_PUBLIC_SITE_URL` | `https://informersidea.com` |
-| `DATABASE_HOST` | `127.0.0.1` for Hostinger's managed MySQL | 
-| `DATABASE_PORT` | Hostinger's port, usually `3306` |
-| `DATABASE_NAME` | `u382937075_informersideas` |
-| `DATABASE_USER` | `u382937075_informersideas` |
-| `DATABASE_PASSWORD` | Database password |
-| `DATABASE_SSL` | `true` if required by the database service |
-| `ANALYTICS_HASH_SECRET` | Random secret generated below |
-| `INTEGRATION_ENCRYPTION_KEY` | A separate random secret generated below |
+| Key                          | Value                                      |
+| ---------------------------- | ------------------------------------------ |
+| `APP_URL`                    | `https://informersidea.com`                |
+| `NEXT_PUBLIC_SITE_URL`       | `https://informersidea.com`                |
+| `DATABASE_HOST`              | `127.0.0.1` for Hostinger's managed MySQL  |
+| `DATABASE_PORT`              | Hostinger's port, usually `3306`           |
+| `DATABASE_NAME`              | `u382937075_informersideas`                |
+| `DATABASE_USER`              | `u382937075_informersideas`                |
+| `DATABASE_PASSWORD`          | Database password                          |
+| `DATABASE_SSL`               | `true` if required by the database service |
+| `ANALYTICS_HASH_SECRET`      | Random secret generated below              |
+| `INTEGRATION_ENCRYPTION_KEY` | A separate random secret generated below   |
 
 Generate each secret independently on a trusted machine:
 
@@ -82,9 +82,9 @@ References: [Google OAuth web-server flow](https://developers.google.com/identit
 
 Google Analytics 4 is connected to public stream `G-MDY2R8G1ET`. The script loads automatically when admin analytics is enabled. Existing opt-outs and DNT/GPC prevent loading. There is no consent banner; the Privacy Policy page provides an opt-out control. New visitor events are no longer sent to the built-in MySQL collector; its dashboard contains historical records only. This configuration is not a guarantee of compliance with consent requirements in every region. No GTM container or additional environment variable is needed. Enhanced Measurement handles page views (including history changes); do not add a second page-view tag. Custom `tool_started` events carry only a tool ID. Withdrawal disables GA, clears its first-party cookies, and reloads to unload automatic listeners. The privacy notice discloses Google collection. Keep automatic form/download tracking disabled for file tools; site search is optional and may include URL search terms. Google reporting and retention are separate from the built-in MySQL dashboard.
 
-After deployment, accept analytics in a fresh public-site browser session and check GA4 Realtime. Declining must produce no Google tag requests. Admin pages do not load the integration. No historical visits are backfilled.
+After deployment, open a fresh public-site browser session and check GA4 Realtime. Existing opt-outs and DNT/GPC must produce no Google tag requests. Test the opt-out control on the Privacy Policy page. Admin pages do not load the integration. No historical visits are backfilled.
 
-Enable analytics in admin Settings after configuring its secret. Visitors can allow or decline tracking and withdraw consent. Events contain page/tool IDs and coarse device/referrer categories, never uploaded files or file names. Browser privacy signals are respected. Country data requires a trusted hosting header.
+The admin Analytics page currently displays historical MySQL records, not GA4 reports. Registered-user and subscription totals still come from the application database.
 
 Ad slots support active/inactive state, placement, dates and device targeting. HTML ads run in sandboxed frames; scripts requiring top-level DOM access may not work. Campaign records are managed separately; automated campaign delivery, ad click/impression reporting, and payment settlement are not implemented.
 
@@ -106,4 +106,27 @@ Production build: `npm run build`. Public regression tests: `npm test`.
 
 For backend integration tests, start a built app on localhost:3200 with an isolated MySQL database, seed it, bootstrap a test admin and run `node scripts/test-backend.mjs`. Set `TEST_ADMIN_EMAIL` and `TEST_ADMIN_PASSWORD` for your test account. The script refuses non-localhost URLs and creates test records. Never point the test app at production MySQL.
 
-Implemented here: session authentication, fixed roles, user creation/editing, tools/categories/blog CRUD, page SEO and redirects, sitemap/robots controls, consented analytics, Search Console connector/reports, ad slots, plans/manual subscriptions, scoped API keys, settings and audit log. Custom role editing, uploaded media library, rich-text editing, comment moderation, scheduled email notifications, conversion quotas, payment checkout/webhooks and an API conversion worker are subsequent modules; they are not presented as working features.
+Implemented here: session authentication, fixed roles, user creation/editing, tools/categories/blog CRUD, page SEO and redirects, sitemap/robots controls, consented analytics, Search Console connector/reports, ad slots, plans/manual subscriptions, scoped API keys, settings and audit log. Custom role editing, media-library browsing, comment moderation, scheduled email notifications, conversion quotas, payment checkout/webhooks and an API conversion worker are subsequent modules; they are not presented as working features.
+
+## Deferred work and current status ? 18 November 2026
+
+Owner decision: add a **separate Google Analytics (GA4) option under Analytics later**, preserving the existing reports. Do not implement this integration until requested. It will require Google Analytics Data API access to the property and server-side reporting for visitors, page views, countries, devices, traffic sources and tool usage, with date filters. Installing the tracking script does not supply these admin reports.
+
+Production setup since the original verification report: MySQL schema/admin setup completed; the owner confirmed SMTP password reset works, connected Search Console, and submitted the sitemap successfully. Automatic GA4 loading and opt-out behavior were checked on the live .com site. Receipt of real events in Google reports still needs confirmation by the owner.
+
+Remaining work includes payment checkout/webhooks and premium enforcement (provider intentionally deferred by the original specification), automated ad campaigns and impression/click reporting, and operational confirmation of daily cleanup, database backups and a restore drill. Fixed roles, basic blog editing and catalog-read API keys are implemented; custom roles, media-library browsing, and a file-conversion API are extensions, not completed features. Recheck the full original acceptance checklist before calling all of Phase 2 complete.
+
+## Content management update
+
+Run `npm run db:setup` with the app environment after backing up MySQL. Migration 002 adds `ssinfo_media`; setup seeds Pages & SEO with existing information pages, main pages, categories, and tools without overwriting existing records.
+
+- **SEO & marketing > Pages & SEO**: edit static content, headings, introductions, meta titles/descriptions/keywords, canonical URLs, index settings, and sharing images. Create custom information pages using a single path such as `/help`. Functional pages retain their tools/forms. Tool and blog body content is managed in their own sections.
+- **Blog > All posts**: use CKEditor for formatting, tables, links, and embedded uploaded images; upload a separate featured image.
+- **Settings > General & branding**: upload logo, favicon, and default sharing image; set tagline and social/channel URLs.
+- **Delete** beside Edit removes records from public listings after confirmation. Deleting a page SEO override does not delete a functional tool/category; manage those in Tools. Deleted seeded records are not recreated by setup. Super Admin accounts must be assigned another role before deletion; you cannot delete yourself.
+
+Uploads accept JPEG, PNG, WebP, GIF, and AVIF up to 5 MB and 25 megapixels. They are resized to at most 2400 pixels and stored as WebP in MySQL (animated images become still images). Include `ssinfo_media` in database backups. SVG uploads are not accepted. Uploaded images are public content, so upload only images intended for publication.
+
+CKEditor uses its self-hosted free GPL edition, with standard features only. See THIRD_PARTY_NOTICES.md for licensing obligations; this setting does not relicense the application. A commercial license key can instead be supplied with `NEXT_PUBLIC_CKEDITOR_LICENSE_KEY` before building.
+
+CMS integration checks: start an isolated local app/database, set `TEST_BASE_URL`, `TEST_ADMIN_EMAIL` and `TEST_ADMIN_PASSWORD`, then run `node scripts/test-cms.mjs`. The test refuses remote servers and checks editor saves, sanitization, image delivery, SEO, branding and deletion.

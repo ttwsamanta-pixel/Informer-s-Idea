@@ -18,13 +18,14 @@ import {
 } from 'lucide-react';
 import { ToolIcon } from '@/components/ui/icon';
 import { ToolCard, RecentTools } from '@/components/tools/directory';
-import { catalog, blog, pageSEO } from '@/server/content';
+import { catalog, blog, pageSEO, contentPage } from '@/server/content';
 export async function generateMetadata() {
   return pageSEO('/', { alternates: { canonical: '/' } });
 }
 export default async function Home() {
   const { tools, categories } = await catalog();
   const articles = await blog();
+  const page = await contentPage('');
   return (
     <>
       <section className="hero">
@@ -34,18 +35,26 @@ export default async function Home() {
               <span />
               100% Free <b>·</b> Fast <b>·</b> Secure <b>·</b> No Registration
             </span>
-            <h1>
-              All Your Online Tools
-              <br />
-              in <em>One Place.</em>
-            </h1>
-            <p>
-              Edit images, work with PDFs, create passport photos,
-              <br className="desktop-break" /> and more — directly in your
-              browser.
-              <br />
-              <span>No uploads. No hassle. Just get things done.</span>
-            </p>
+            {page?.title ? (
+              <h1>{page.title}</h1>
+            ) : (
+              <h1>
+                All Your Online Tools
+                <br />
+                in <em>One Place.</em>
+              </h1>
+            )}
+            {page?.description ? (
+              <p>{page.description}</p>
+            ) : (
+              <p>
+                Edit images, work with PDFs, create passport photos,
+                <br className="desktop-break" /> and more — directly in your
+                browser.
+                <br />
+                <span>No uploads. No hassle. Just get things done.</span>
+              </p>
+            )}
             <form action="/all-tools" className="hero-search">
               <Search size={21} />
               <input
@@ -140,6 +149,12 @@ export default async function Home() {
           </div>
         </div>
       </section>
+      {page?.content && (
+        <section
+          className="container prose"
+          dangerouslySetInnerHTML={{ __html: page.content }}
+        />
+      )}
       <section className="benefits container">
         {[
           [Zap, 'Completely Free', 'No hidden charges', 'orange'],

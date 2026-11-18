@@ -1,3 +1,4 @@
+import { uploadImage, serveImage } from '@/server/media';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { randomUUID } from 'node:crypto';
@@ -31,6 +32,7 @@ import { dashboard, recordEvent } from '@/server/analytics';
 import {
   users,
   saveUser,
+  deleteUser,
   readKeys,
   createKey,
   revokeKey,
@@ -60,13 +62,18 @@ async function handle(
       const config = await settings();
       return respond({ analyticsEnabled: Boolean(config.analyticsEnabled) });
     }
-    if (route === 'public/ads' && method === 'GET' && !databaseConfigured()) return respond([]);
+    if (route === 'public/ads' && method === 'GET' && !databaseConfigured())
+      return respond([]);
     if (!databaseConfigured())
       throw new HttpError(
         503,
         'Backend setup is pending. Configure MySQL and run the database setup command.',
       );
     if (!['GET', 'HEAD'].includes(method)) checkOrigin(req);
+    if (path[0] === 'media' && path.length === 2 && method === 'GET')
+      return serveImage(path[1]);
+    if (route === 'admin/media' && method === 'POST')
+      return respond(await uploadImage(req));
     if (route === 'auth/me' && method === 'GET')
       return respond(await currentUser());
     if (route === 'auth/login' && method === 'POST') {
@@ -171,6 +178,8 @@ async function handle(
         return respond(await disableResource(path[2], path[3]));
     }
     if (path[1] === 'users') {
+      if (method === 'DELETE' && path[2])
+        return respond(await deleteUser(path[2]));
       if (method === 'GET') return respond(await users(url));
       if (method === 'POST' || method === 'PATCH')
         return respond(await saveUser(await jsonBody(req), path[2]));

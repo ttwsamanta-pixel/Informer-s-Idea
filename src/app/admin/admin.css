@@ -897,3 +897,47 @@
     flex-direction: column;
   }
 }
+
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+.admin-rich-editor {
+  min-width: 0;
+  --ck-color-base-border: #ddd6fe;
+  --ck-color-focus-border: #7c3aed;
+  --ck-color-button-on-background: #ede9fe;
+  --ck-color-button-on-color: #6d28d9;
+}
+.admin-rich-editor .ck-editor__editable {
+  min-height: 280px;
+  max-height: 55vh;
+  color: #172033;
+  font-weight: 400;
+}
+.admin-rich-editor .ck-editor__editable p {
+  margin: 0 0 1em;
+}
+.admin-root .ck.ck-button {
+  min-width: 28px;
+  padding: 4px;
+}
+.admin-image-upload {
+  display: grid;
+  gap: 10px;
+  font-weight: 400;
+  padding: 14px;
+  border: 1px dashed #c4b5fd;
+  border-radius: 12px;
+}
+.admin-image-upload small {
+  color: #69738b;
+}
+.admin-image-upload button {
+  justify-self: start;
+}
+.admin-image-upload [role='alert'] {
+  color: #b91c1c;
+}

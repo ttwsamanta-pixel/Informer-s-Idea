@@ -1,4 +1,10 @@
 'use client';
+import dynamic from 'next/dynamic';
+import { ImageUpload } from './image-upload';
+const ContentEditor = dynamic(() => import('./content-editor'), {
+  ssr: false,
+  loading: () => <p>Loading editor?</p>,
+});
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -602,16 +608,31 @@ function Fields({ fields, initial = {} }: { fields: Field[]; initial?: Row }) {
   return (
     <>
       {fields.map((f) => (
-        <label key={f.key} className={f.type === 'textarea' ? 'wide' : ''}>
-          {f.label}
-          {f.type === 'checkbox' ? (
+        <div
+          key={f.key}
+          className={
+            'admin-field ' +
+            (['textarea', 'richtext'].includes(f.type || '') ? 'wide' : '')
+          }
+        >
+          <label htmlFor={'field-' + f.key}>{f.label}</label>
+          {f.type === 'richtext' ? (
+            <ContentEditor
+              name={f.key}
+              initial={String(initial[f.key] || '')}
+            />
+          ) : f.type === 'image' ? (
+            <ImageUpload name={f.key} initial={String(initial[f.key] || '')} />
+          ) : f.type === 'checkbox' ? (
             <input
+              id={'field-' + f.key}
               name={f.key}
               type="checkbox"
               defaultChecked={Boolean(initial[f.key])}
             />
           ) : f.type === 'select' ? (
             <select
+              id={'field-' + f.key}
               name={f.key}
               defaultValue={String(initial[f.key] || f.options?.[0] || '')}
             >
@@ -621,6 +642,7 @@ function Fields({ fields, initial = {} }: { fields: Field[]; initial?: Row }) {
             </select>
           ) : f.type === 'textarea' ? (
             <textarea
+              id={'field-' + f.key}
               name={f.key}
               required={f.required}
               rows={f.key === 'content' ? 12 : 3}
@@ -628,6 +650,7 @@ function Fields({ fields, initial = {} }: { fields: Field[]; initial?: Row }) {
             />
           ) : (
             <input
+              id={'field-' + f.key}
               name={f.key}
               required={f.required}
               type={f.type === 'date' ? 'datetime-local' : f.type || 'text'}
@@ -636,7 +659,7 @@ function Fields({ fields, initial = {} }: { fields: Field[]; initial?: Row }) {
               defaultValue={String(initial[f.key] ?? '')}
             />
           )}
-        </label>
+        </div>
       ))}
     </>
   );
@@ -720,14 +743,42 @@ function ResourceEditor({ resource }: { resource: string }) {
             updated: r.updatedAt,
           }))}
           actions={(r) => (
-            <button
-              className="admin-secondary"
-              onClick={() =>
-                setEdit(state.data!.items.find((i) => i.id === r.id)!)
-              }
-            >
-              Edit
-            </button>
+            <div className="admin-row-actions">
+              <button
+                className="admin-secondary"
+                onClick={() =>
+                  setEdit(state.data!.items.find((i) => i.id === r.id)!)
+                }
+              >
+                Edit
+              </button>
+              <button
+                className="admin-secondary"
+                disabled={busy}
+                onClick={async () => {
+                  if (
+                    !window.confirm(
+                      `Delete ${r.name}? This removes the record from the website.`,
+                    )
+                  )
+                    return;
+                  setBusy(true);
+                  setError('');
+                  try {
+                    await api('admin/resources/' + resource + '/' + r.id, {
+                      method: 'DELETE',
+                    });
+                    state.reload();
+                  } catch (err) {
+                    setError((err as Error).message);
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                Delete
+              </button>
+            </div>
           )}
         />
         <div className="admin-pagination">
@@ -753,6 +804,10 @@ function ResourceEditor({ resource }: { resource: string }) {
           <form
             onSubmit={async (e) => {
               e.preventDefault();
+              if (e.currentTarget.querySelector('[data-uploading="true"]')) {
+                setError('Wait for images to finish uploading before saving.');
+                return;
+              }
               setBusy(true);
               setError('');
               const f = new FormData(e.currentTarget),
@@ -880,6 +935,12 @@ function Management({ section }: { section: string }) {
               key={JSON.stringify(data)}
               onSubmit={(e) => {
                 e.preventDefault();
+                if (e.currentTarget.querySelector('[data-uploading="true"]')) {
+                  setError(
+                    'Wait for images to finish uploading before saving.',
+                  );
+                  return;
+                }
                 const f = new FormData(e.currentTarget);
                 void perform(
                   'admin/settings',
@@ -887,6 +948,19 @@ function Management({ section }: { section: string }) {
                     siteTitle: f.get('siteTitle'),
                     description: f.get('description'),
                     ogImage: f.get('ogImage'),
+                    ...Object.fromEntries(
+                      [
+                        'logo',
+                        'favicon',
+                        'tagline',
+                        'facebook',
+                        'instagram',
+                        'x',
+                        'linkedin',
+                        'youtube',
+                        'youtubeBangla',
+                      ].map((k) => [k, String(f.get(k) || '')]),
+                    ),
                     analyticsEnabled: f.has('analyticsEnabled'),
                     allowIndexing: f.has('allowIndexing'),
                     retentionDays: Number(f.get('retentionDays')),
@@ -900,6 +974,23 @@ function Management({ section }: { section: string }) {
                   initial={data as Row}
                   fields={[
                     { key: 'siteTitle', label: 'Site title', required: true },
+                    { key: 'logo', label: 'Website logo', type: 'image' },
+                    { key: 'favicon', label: 'Favicon', type: 'image' },
+                    { key: 'tagline', label: 'Logo tagline' },
+                    ...[
+                      'facebook',
+                      'instagram',
+                      'x',
+                      'linkedin',
+                      'youtube',
+                      'youtubeBangla',
+                    ].map((key) => ({
+                      key,
+                      label:
+                        key === 'youtubeBangla'
+                          ? 'YouTube Bangla URL'
+                          : key + ' URL',
+                    })),
                     {
                       key: 'description',
                       label: 'Description',
@@ -907,7 +998,8 @@ function Management({ section }: { section: string }) {
                     },
                     {
                       key: 'ogImage',
-                      label: 'Default Open Graph image HTTPS URL',
+                      label: 'Default social sharing image',
+                      type: 'image',
                     },
                     {
                       key: 'analyticsEnabled',
@@ -987,6 +1079,12 @@ function Management({ section }: { section: string }) {
               className="admin-inline"
               onSubmit={(e) => {
                 e.preventDefault();
+                if (e.currentTarget.querySelector('[data-uploading="true"]')) {
+                  setError(
+                    'Wait for images to finish uploading before saving.',
+                  );
+                  return;
+                }
                 const f = new FormData(e.currentTarget);
                 void perform('admin/api-keys', {
                   name: f.get('name'),
@@ -1009,6 +1107,12 @@ function Management({ section }: { section: string }) {
               className="admin-inline"
               onSubmit={(e) => {
                 e.preventDefault();
+                if (e.currentTarget.querySelector('[data-uploading="true"]')) {
+                  setError(
+                    'Wait for images to finish uploading before saving.',
+                  );
+                  return;
+                }
                 const f = new FormData(e.currentTarget);
                 void perform('admin/redirects', {
                   source: f.get('source'),
@@ -1026,6 +1130,12 @@ function Management({ section }: { section: string }) {
               className="admin-form-grid"
               onSubmit={(e) => {
                 e.preventDefault();
+                if (e.currentTarget.querySelector('[data-uploading="true"]')) {
+                  setError(
+                    'Wait for images to finish uploading before saving.',
+                  );
+                  return;
+                }
                 const f = new FormData(e.currentTarget);
                 void perform('admin/subscriptions', {
                   userId: f.get('userId'),
@@ -1070,16 +1180,30 @@ function Management({ section }: { section: string }) {
             actions={
               section === 'users'
                 ? (r) => (
-                    <button
-                      onClick={() =>
-                        setEdit({
-                          ...r,
-                          role: String(r.roles || 'Support').split(',')[0],
-                        })
-                      }
-                    >
-                      Edit
-                    </button>
+                    <>
+                      <button
+                        onClick={() =>
+                          setEdit({
+                            ...r,
+                            role: String(r.roles || 'Support').split(',')[0],
+                          })
+                        }
+                      >
+                        Edit
+                      </button>{' '}
+                      <button
+                        onClick={() => {
+                          if (
+                            window.confirm(
+                              'Delete this account? They will lose access immediately.',
+                            )
+                          )
+                            void perform('admin/users/' + r.id, {}, 'DELETE');
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </>
                   )
                 : section === 'api-keys'
                   ? (r) => (
@@ -1121,6 +1245,10 @@ function Management({ section }: { section: string }) {
           <form
             onSubmit={(e) => {
               e.preventDefault();
+              if (e.currentTarget.querySelector('[data-uploading="true"]')) {
+                setError('Wait for images to finish uploading before saving.');
+                return;
+              }
               const f = new FormData(e.currentTarget);
               void perform(
                 'admin/users' + (edit.id ? '/' + edit.id : ''),

@@ -1,3 +1,5 @@
+import { information } from '../src/config/information';
+import { textContent } from '../src/lib/content-html';
 import { loadEnvConfig } from '@next/env';
 import mysql from 'mysql2/promise';
 import { readFile, readdir } from 'node:fs/promises';
@@ -59,10 +61,10 @@ async function main() {
     }
     await c.query("SELECT RELEASE_LOCK('ssinfo_migrations')");
     for (const p of ['*', ...permissionNames])
-      await c.execute('INSERT IGNORE INTO ssinfo_permissions (id,name) VALUES (?,?)', [
-        p,
-        p,
-      ]);
+      await c.execute(
+        'INSERT IGNORE INTO ssinfo_permissions (id,name) VALUES (?,?)',
+        [p, p],
+      );
     const roles: Record<string, string[]> = {
       'Super Admin': ['*'],
       Admin: permissionNames.filter((p) => p !== 'users' && p !== 'settings'),
@@ -73,10 +75,10 @@ async function main() {
       Support: ['dashboard'],
     };
     for (const [role, permissions] of Object.entries(roles)) {
-      await c.execute('INSERT IGNORE INTO ssinfo_roles (id,name) VALUES (?,?)', [
-        role,
-        role,
-      ]);
+      await c.execute(
+        'INSERT IGNORE INTO ssinfo_roles (id,name) VALUES (?,?)',
+        [role, role],
+      );
       for (const p of permissions)
         await c.execute(
           'INSERT IGNORE INTO ssinfo_role_permissions (role_id,permission_id) VALUES (?,?)',
@@ -138,6 +140,47 @@ async function main() {
         }),
       ],
     );
+    const pageSeeds = [
+      ...Object.entries(information).map(([slug, p]) => ({
+        path: '/' + slug,
+        name: p.title,
+        data: {
+          pageTitle: p.title,
+          description: p.description,
+          content: p.sections
+            .map(([h, t]) => `<h2>${h}</h2>${textContent(t)}`)
+            .join(''),
+          contentFormat: 'html',
+        },
+      })),
+      {
+        path: '/contact',
+        name: 'Contact',
+        data: {
+          pageTitle: 'Have an idea? We are listening.',
+          description: 'Get in touch with Informers Idea.',
+          content: '',
+        },
+      },
+      { path: '/', name: 'Home', data: {} },
+      { path: '/all-tools', name: 'All Tools', data: {} },
+      { path: '/blog', name: 'Blog', data: {} },
+      ...categories.map((c) => ({
+        path: '/' + c.slug,
+        name: c.name,
+        data: {},
+      })),
+      ...tools.map((t) => ({
+        path: '/tools/' + t.slug,
+        name: t.name,
+        data: {},
+      })),
+    ];
+    for (const p of pageSeeds)
+      await c.execute(
+        "INSERT IGNORE INTO ssinfo_seo_pages (id,slug,name,status,data) VALUES (?,?,?,'active',?)",
+        [p.path, p.path, p.name, JSON.stringify(p.data)],
+      );
     if (process.argv.includes('--admin')) {
       const email = process.env.ADMIN_EMAIL?.trim().toLowerCase(),
         password = process.env.ADMIN_PASSWORD;
@@ -180,7 +223,9 @@ async function main() {
       );
     }
     if (process.argv.includes('--cleanup')) {
-      await c.execute('DELETE FROM ssinfo_sessions WHERE expires_at<UTC_TIMESTAMP()');
+      await c.execute(
+        'DELETE FROM ssinfo_sessions WHERE expires_at<UTC_TIMESTAMP()',
+      );
       await c.execute(
         'DELETE FROM ssinfo_password_resets WHERE expires_at<UTC_TIMESTAMP()',
       );

@@ -53,12 +53,16 @@ export default async function Article({
           />
         )}
         {a.author && <p>By {a.author}</p>}
-        {a.sections.map(([title, text]) => (
-          <section key={title}>
-            <h2>{title}</h2>
-            <p>{text}</p>
-          </section>
-        ))}
+        {a.content !== undefined ? (
+          <div dangerouslySetInnerHTML={{ __html: a.content }} />
+        ) : (
+          a.sections.map(([title, text]) => (
+            <section key={title}>
+              <h2>{title}</h2>
+              <p>{text}</p>
+            </section>
+          ))
+        )}
         {a.tool && (
           <Link className="button primary" href={'/tools/' + a.tool}>
             Try the tool →

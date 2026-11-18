@@ -8,7 +8,9 @@ export type Field = {
     | 'checkbox'
     | 'date'
     | 'select'
-    | 'password';
+    | 'password'
+    | 'image'
+    | 'richtext';
   options?: string[];
   required?: boolean;
 };
@@ -20,6 +22,7 @@ const description: Field = {
   type: 'textarea',
 };
 const seo: Field[] = [
+  { key: 'seoKeywords', label: 'Meta keywords (comma separated)' },
   { key: 'seoTitle', label: 'SEO title' },
   { key: 'seoDescription', label: 'SEO description', type: 'textarea' },
 ];
@@ -85,14 +88,14 @@ export const resources: Record<
       { key: 'description', label: 'Excerpt', type: 'textarea' },
       {
         key: 'content',
-        label: 'Article text (blank lines separate paragraphs)',
-        type: 'textarea',
+        label: 'Article content',
+        type: 'richtext',
         required: true,
       },
       { key: 'category', label: 'Category' },
       { key: 'tags', label: 'Tags (comma separated)' },
       { key: 'author', label: 'Author' },
-      { key: 'featuredImage', label: 'Featured image HTTPS URL' },
+      { key: 'featuredImage', label: 'Featured image', type: 'image' },
       { key: 'publishDate', label: 'Publish date (UTC)', type: 'date' },
       ...seo,
       { key: 'canonical', label: 'Canonical URL' },
@@ -113,7 +116,7 @@ export const resources: Record<
     fields: [name, slug],
   },
   seo: {
-    title: 'Page SEO',
+    title: 'Pages & SEO',
     table: 'ssinfo_seo_pages',
     permission: 'seo',
     statuses: ['active', 'inactive'],
@@ -124,12 +127,19 @@ export const resources: Record<
         label: 'Page path (for example /tools/resize-image)',
         required: true,
       },
+      { key: 'pageTitle', label: 'Page heading' },
+      { key: 'description', label: 'Page introduction', type: 'textarea' },
+      {
+        key: 'content',
+        label: 'Page content (information pages)',
+        type: 'richtext',
+      },
       ...seo,
       { key: 'canonical', label: 'Canonical HTTPS URL' },
       { key: 'noindex', label: 'Exclude from search', type: 'checkbox' },
       { key: 'ogTitle', label: 'Open Graph title' },
       { key: 'ogDescription', label: 'Open Graph description' },
-      { key: 'ogImage', label: 'Open Graph image HTTPS URL' },
+      { key: 'ogImage', label: 'Open Graph image', type: 'image' },
     ],
   },
   ads: {
@@ -161,7 +171,7 @@ export const resources: Record<
         type: 'select',
         options: ['image', 'html'],
       },
-      { key: 'image', label: 'Image HTTPS URL' },
+      { key: 'image', label: 'Image', type: 'image' },
       { key: 'destination', label: 'Destination HTTPS URL' },
       {
         key: 'html',
@@ -245,7 +255,7 @@ export const adminNavigation = [
     label: 'SEO & marketing',
     icon: 'TrendingUp',
     children: [
-      ['Page SEO', 'seo'],
+      ['Pages & SEO', 'seo'],
       ['Redirects', 'redirects'],
       ['Sitemap & robots', 'indexing'],
     ],

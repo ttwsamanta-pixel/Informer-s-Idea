@@ -1,3 +1,4 @@
+import { cleanContent } from '@/lib/content-html';
 import 'server-only';
 import { z } from 'zod';
 import { randomUUID } from 'node:crypto';
@@ -16,10 +17,16 @@ const slugSchema = z
   .min(1)
   .max(190)
   .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/);
-const safeURL = z
+export const safeURL = z
   .string()
   .max(2048)
-  .refine((s) => !s || s.startsWith('https://'), 'Use an HTTPS URL.');
+  .refine(
+    (s) =>
+      !s ||
+      s.startsWith('https://') ||
+      /^\/api\/v1\/media\/[a-f0-9-]{36}$/.test(s),
+    'Use an HTTPS URL.',
+  );
 export async function listResource(key: string, url: URL) {
   const r = Object.hasOwn(resources, key) ? resources[key] : undefined;
   if (!r) throw new HttpError(404, 'Resource not found.');
@@ -30,7 +37,8 @@ export async function listResource(key: string, url: URL) {
     ),
     q = (url.searchParams.get('q') || '').slice(0, 100),
     status = url.searchParams.get('status');
-  const where = 'WHERE name LIKE ?' + (status ? ' AND status=?' : '');
+  const where =
+    "WHERE status<>'deleted' AND name LIKE ?" + (status ? ' AND status=?' : '');
   const values: unknown[] = ['%' + q + '%', ...(status ? [status] : [])];
   const [count] = await query<{ total: number }>(
     `SELECT COUNT(*) AS total FROM ${r.table} ${where}`,
@@ -65,17 +73,43 @@ export async function saveResource(key: string, body: unknown, id?: string) {
                 'ogImage',
                 'featuredImage',
               ].includes(f.key)
-            ? safeURL.default('')
+            ? (f.type === 'image'
+                ? safeURL
+                : z
+                    .string()
+                    .max(2048)
+                    .refine(
+                      (v) => !v || /^https:\/\/[^\s]+$/.test(v),
+                      'Use an HTTPS URL.',
+                    )
+              ).default('')
             : f.type === 'select'
               ? z
                   .enum(f.options as [string, ...string[]])
                   .default(f.options![0])
               : z
                   .string()
-                  .max(f.type === 'textarea' ? 100000 : 2048)
+                  .max(
+                    ['textarea', 'richtext'].includes(f.type || '')
+                      ? 100000
+                      : 2048,
+                  )
                   .default('');
   }
   const data = z.object(shape).strict().parse(body) as Record<string, unknown>;
+  if (r.fields.some((f) => f.type === 'richtext')) {
+    data.content = cleanContent(String(data.content || ''));
+    data.contentFormat = 'html';
+  }
+  if (
+    key === 'seo' &&
+    !['/', '/all-tools', '/blog'].includes(String(data.slug)) &&
+    !/^\/(?:tools|blog)\/[a-z0-9-]+$/.test(String(data.slug)) &&
+    !/^\/[a-z0-9-]+$/.test(String(data.slug))
+  )
+    throw new HttpError(400, 'Use a public page path.');
+  if (key === 'seo' && ['/admin', '/api', '/tools'].includes(String(data.slug)))
+    throw new HttpError(400, 'This path is reserved.');
   for (const field of ['publishDate', 'startDate', 'endDate'])
     if (data[field] && !Number.isFinite(Date.parse(String(data[field]))))
       throw new HttpError(400, 'Enter a valid date.');
@@ -183,10 +217,18 @@ export async function disableResource(key: string, id: string) {
   const r = Object.hasOwn(resources, key) ? resources[key] : undefined;
   if (!r) throw new HttpError(404, 'Resource not found.');
   const user = await requireUser(r.permission);
-  await execute(`UPDATE ${r.table} SET status=? WHERE id=?`, [
-    key === 'posts' ? 'draft' : 'inactive',
-    id,
-  ]);
-  await audit(user.id, 'disable', key + ':' + id);
-  return { message: 'Record unpublished / disabled.' };
+  if (key === 'categories') {
+    const [count] = await query<{ total: number }>(
+      "SELECT COUNT(*) AS total FROM ssinfo_tool_category_mapping m JOIN ssinfo_tools t ON t.id=m.tool_id WHERE m.category_id=? AND t.status<>'deleted'",
+      [id],
+    );
+    if (count.total)
+      throw new HttpError(
+        400,
+        'Move or delete the tools in this category first.',
+      );
+  }
+  await execute(`UPDATE ${r.table} SET status=? WHERE id=?`, ['deleted', id]);
+  await audit(user.id, 'delete', key + ':' + id);
+  return { message: 'Record deleted.' };
 }

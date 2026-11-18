@@ -1,3 +1,4 @@
+import { safeURL } from './resources';
 import 'server-only';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
@@ -39,7 +40,9 @@ export async function saveUser(body: unknown, id?: string) {
       400,
       'You cannot remove your own administrator access.',
     );
-  const [role] = await query('SELECT id FROM ssinfo_roles WHERE id=?', [d.role]);
+  const [role] = await query('SELECT id FROM ssinfo_roles WHERE id=?', [
+    d.role,
+  ]);
   if (!role) throw new HttpError(400, 'Unknown role.');
   const recordId = id || randomUUID(),
     hash = d.password ? await hashPassword(d.password) : null;
@@ -69,7 +72,11 @@ export async function saveUser(body: unknown, id?: string) {
         [recordId, d.name, d.email, hash, d.status],
         c,
       );
-    await execute('DELETE FROM ssinfo_user_roles WHERE user_id=?', [recordId], c);
+    await execute(
+      'DELETE FROM ssinfo_user_roles WHERE user_id=?',
+      [recordId],
+      c,
+    );
     await execute(
       'INSERT INTO ssinfo_user_roles (user_id,role_id) VALUES (?,?)',
       [recordId, d.role],
@@ -136,11 +143,30 @@ export async function saveSettings(body: unknown) {
       analyticsEnabled: z.boolean(),
       allowIndexing: z.boolean(),
       retentionDays: z.number().int().min(7).max(365),
-      ogImage: z
-        .string()
-        .max(2048)
-        .refine((v) => !v || v.startsWith('https://'))
-        .default(''),
+      ogImage: safeURL.default(''),
+      logo: safeURL.default(''),
+      favicon: safeURL.default(''),
+      tagline: z.string().max(150).default(''),
+      ...Object.fromEntries(
+        [
+          'facebook',
+          'instagram',
+          'x',
+          'linkedin',
+          'youtube',
+          'youtubeBangla',
+        ].map((key) => [
+          key,
+          z
+            .string()
+            .max(2048)
+            .refine(
+              (v) => !v || /^https:\/\/[^\s]+$/.test(v),
+              'Use an HTTPS social link.',
+            )
+            .default(''),
+        ]),
+      ),
     })
     .strict()
     .parse(body);
@@ -155,4 +181,41 @@ export async function saveSettings(body: unknown) {
   );
   await audit(user.id, 'update-settings', 'general');
   return d;
+}
+
+export async function deleteUser(id: string) {
+  const actor = await requireUser('users');
+  if (actor.id === id)
+    throw new HttpError(400, 'You cannot delete your own account.');
+  await transaction(async (c) => {
+    const [user] = await query<{ id: string }>(
+      'SELECT id FROM ssinfo_users WHERE id=? AND deleted_at IS NULL FOR UPDATE',
+      [id],
+      c,
+    );
+    if (!user) throw new HttpError(404, 'Account not found.');
+    const roles = await query<{ role_id: string }>(
+      'SELECT role_id FROM ssinfo_user_roles WHERE user_id=?',
+      [id],
+      c,
+    );
+    if (roles.some((r) => r.role_id === 'Super Admin'))
+      throw new HttpError(
+        400,
+        'Change this account to another role before deleting a Super Admin.',
+      );
+    await execute(
+      "UPDATE ssinfo_users SET status='inactive',deleted_at=UTC_TIMESTAMP() WHERE id=?",
+      [id],
+      c,
+    );
+    await execute('DELETE FROM ssinfo_sessions WHERE user_id=?', [id], c);
+    await execute(
+      'UPDATE ssinfo_api_keys SET revoked_at=UTC_TIMESTAMP() WHERE user_id=? AND revoked_at IS NULL',
+      [id],
+      c,
+    );
+  });
+  await audit(actor.id, 'delete-user', id);
+  return { deleted: true };
 }
