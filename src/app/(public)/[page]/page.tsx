@@ -1,3 +1,4 @@
+import { AnalyticsPreferences } from '@/components/backend/analytics-preferences';
 import { catalog, pageSEO } from '@/server/content';
 import ConverterHub from '@/components/tools/converter-hub';
 import Link from 'next/link';
@@ -49,11 +50,11 @@ const information: Record<
       ],
       [
         'Hosting and links',
-        'Your hosting provider may retain ordinary access logs. When enabled, our optional first-party analytics records page paths, tool IDs, pseudonymous visitor/session IDs, device category and referral source only after your consent. These first-party events exclude files, form contents and URL query strings. Detailed events follow the configured retention period. Administrators have secured account and audit records. Active ad placements may load third-party resources. External links have their own policies.',
+        'Your hosting provider may retain ordinary access logs. We no longer send visitor analytics events to our built-in MySQL collector. Previously collected detailed events follow the configured retention period. Administrators have secured account and audit records. Active ad placements may load third-party resources. External links have their own policies.',
       ],
       [
         'Google Analytics',
-        'If you allow analytics, we also load Google Analytics 4 on the public website. Google receives usage information such as page URLs, referrers, browser/device information and enabled automatic interactions, and uses cookies to distinguish visits. Enabled site-search tracking may collect search terms from URLs; do not enter personal information into tool searches. Our custom tool events send only the tool identifier, never uploaded files, document contents or processing inputs. Advertising personalization and Google signals are disabled. Google handles this data under its privacy policy at https://policies.google.com/privacy. You can decline analytics or use Privacy preferences to withdraw consent and remove Google Analytics cookies. Browser Do Not Track and Global Privacy Control signals also prevent loading. Google Analytics retention is configured separately in the Google Analytics account.',
+        'When analytics is enabled by the site, Google Analytics 4 loads automatically on the public website unless you have opted out or your browser sends a privacy signal. Google receives usage information such as page URLs, referrers, browser/device information and enabled automatic interactions, and uses cookies to distinguish visits. Enabled site-search tracking may collect search terms from URLs; do not enter personal information into tool searches. Our custom tool events send only the tool identifier, never uploaded files, document contents or processing inputs. Advertising personalization and Google signals are disabled. Google handles this data under its privacy policy at https://policies.google.com/privacy. Use the control below to disable Google Analytics for this browser and remove its cookies. Previous analytics opt-outs remain respected. Browser Do Not Track and Global Privacy Control signals also prevent loading. Google Analytics retention is configured separately in the Google Analytics account.',
       ],
     ],
   },
@@ -219,6 +220,7 @@ export default async function CategoryPage({
             <p>{p}</p>
           </section>
         ))}
+        {page === 'privacy-policy' && <AnalyticsPreferences />}
         {page === 'about' && (
           <Link className="button primary" href="/all-tools">
             Explore the toolkit →

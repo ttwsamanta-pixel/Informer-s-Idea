@@ -10,7 +10,7 @@ let initialized = false;
 
 export function analyticsAllowed() {
   try {
-    return localStorage.getItem('idea-analytics-consent') === 'yes' &&
+    return localStorage.getItem('idea-analytics-consent') !== 'no' &&
       navigator.doNotTrack !== '1' &&
       !(navigator as Navigator & { globalPrivacyControl?: boolean }).globalPrivacyControl;
   } catch { return false; }

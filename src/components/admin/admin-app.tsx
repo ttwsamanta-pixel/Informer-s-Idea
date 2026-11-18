@@ -911,7 +911,7 @@ function Management({ section }: { section: string }) {
                     },
                     {
                       key: 'analyticsEnabled',
-                      label: 'Enable consent-based analytics',
+                      label: 'Enable Google Analytics',
                       type: 'checkbox',
                     },
                     {

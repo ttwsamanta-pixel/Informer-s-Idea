@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { analyticsAllowed, enableGoogleAnalytics, disableGoogleAnalytics, trackGoogleTool, GA_MEASUREMENT_ID } from '../src/lib/google-analytics';
 
-test('Google Analytics loads only with consent, once, and stops after withdrawal', () => {
+test('Google Analytics loads automatically once, respects opt-outs, and stops after withdrawal', () => {
   let consent: string | null = null;
   const scripts: unknown[] = [];
   const win: Record<string, unknown> = {};
@@ -11,8 +11,7 @@ test('Google Analytics loads only with consent, once, and stops after withdrawal
   Object.defineProperty(globalThis, 'localStorage', { configurable: true, value: { getItem: () => consent } });
   Object.defineProperty(globalThis, 'location', { configurable: true, value: { pathname: '/', hostname: 'informersidea.com' } });
   Object.defineProperty(globalThis, 'document', { configurable: true, value: { cookie: '', createElement: () => ({}), head: { appendChild: (script: unknown) => scripts.push(script) } } });
-  enableGoogleAnalytics();
-  assert.equal(scripts.length, 0);
+  assert.equal(analyticsAllowed(), true);
   consent = 'no';
   enableGoogleAnalytics();
   assert.equal(scripts.length, 0);
@@ -28,6 +27,7 @@ test('Google Analytics loads only with consent, once, and stops after withdrawal
   enableGoogleAnalytics();
   assert.equal(scripts.length, 0);
   location.pathname = '/';
+  consent = null;
   enableGoogleAnalytics();
   enableGoogleAnalytics();
   assert.equal(scripts.length, 1);
