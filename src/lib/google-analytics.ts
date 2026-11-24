@@ -1,5 +1,6 @@
 // Public GA4 stream identifier, not a credential.
 export const GA_MEASUREMENT_ID = 'G-MDY2R8G1ET';
+export const GTM_CONTAINER_ID = 'GTM-NX9ZCCHS';
 const disableKey = `ga-disable-${GA_MEASUREMENT_ID}`;
 type AnalyticsWindow = Window & {
   dataLayer?: unknown[];
@@ -39,17 +40,17 @@ export function enableGoogleAnalytics() {
     ad_user_data: 'denied',
     ad_personalization: 'denied',
   });
-  win.gtag('js', new Date());
-  // Enhanced Measurement owns initial and history-based page views. Do not
-  // forward our separate first-party page_view events to GA4 as well.
-  win.gtag('config', GA_MEASUREMENT_ID, {
+  // The container's Google Analytics tag owns stream configuration and page
+  // views. Global settings also apply to events queued before it loads.
+  win.gtag('set', {
     allow_google_signals: false,
     allow_ad_personalization_signals: false,
   });
+  win.gtag('js', new Date());
   const script = document.createElement('script');
-  script.id = 'idea-google-analytics';
+  script.id = 'idea-google-tag-manager';
   script.async = true;
-  script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
+  script.src = `https://www.googletagmanager.com/gtm.js?id=${GTM_CONTAINER_ID}`;
   document.head.appendChild(script);
 }
 
