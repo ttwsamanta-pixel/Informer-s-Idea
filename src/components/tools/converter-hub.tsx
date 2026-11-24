@@ -299,7 +299,12 @@ function ConverterWorkspace({
           );
           job.signal.throwIfAborted();
           patch(row.id, { status: 'done', progress: 100, outputs: results });
+          void trackEvent('tool_completed', row.input + '-to-' + row.target);
         } catch (e) {
+          void trackEvent(
+            job.signal.aborted ? 'tool_cancelled' : 'tool_error',
+            row.input + '-to-' + row.target,
+          );
           patch(row.id, {
             status: 'error',
             error: job.signal.aborted

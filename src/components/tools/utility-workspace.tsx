@@ -126,9 +126,11 @@ export default function UtilityWorkspace({ tool }: { tool: ToolDefinition }) {
             onClick={() => {
               setError('');
               try {
-                void trackEvent('tool_started',tool.slug);
+                void trackEvent('tool_started', tool.slug);
                 setOutput(runUtility(op, settings));
+                void trackEvent('tool_completed', tool.slug);
               } catch (e) {
+                void trackEvent('tool_error', tool.slug);
                 setError(
                   e instanceof Error ? e.message : 'Please check your input.',
                 );

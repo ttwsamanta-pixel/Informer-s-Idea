@@ -199,7 +199,7 @@ export default function QRWorkspace({ tool }: { tool: ToolDefinition }) {
               setError('');
               setBusy(true);
               try {
-                void trackEvent('tool_started',tool.slug);
+                void trackEvent('tool_started', tool.slug);
                 const payload = qrPayload(op, settings);
                 const QR = await import('qrcode');
                 const options = {
@@ -213,7 +213,9 @@ export default function QRWorkspace({ tool }: { tool: ToolDefinition }) {
                 };
                 setPng(await QR.toDataURL(payload, options));
                 setSvg(await QR.toString(payload, { ...options, type: 'svg' }));
+                void trackEvent('tool_completed', tool.slug);
               } catch (e) {
+                void trackEvent('tool_error', tool.slug);
                 setError(
                   e instanceof Error
                     ? e.message

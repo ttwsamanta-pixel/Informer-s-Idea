@@ -82,9 +82,12 @@ export default function SignatureWorkspace() {
             disabled={!hasInk}
             onClick={async () => {
               try {
-                void trackEvent('tool_started','signature-maker');
-                download(await canvasBlob(canvas.current!), 'signature.png');
+                void trackEvent('tool_started', 'signature-maker');
+                const blob = await canvasBlob(canvas.current!);
+                void trackEvent('tool_completed', 'signature-maker');
+                download(blob, 'signature.png');
               } catch {
+                void trackEvent('tool_error', 'signature-maker');
                 setError('Could not export the signature. Please try again.');
               }
             }}

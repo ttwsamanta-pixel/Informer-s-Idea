@@ -392,7 +392,6 @@ export default function VisualPDFEditor() {
     );
   };
   const save = async () => {
-    void trackEvent('tool_started','edit-pdf');
     if (!file) return;
     if (draft) {
       setError('Apply or cancel the selected object before downloading.');
@@ -401,7 +400,9 @@ export default function VisualPDFEditor() {
     setBusy(true);
     setError('');
     try {
+      void trackEvent('tool_started', 'edit-pdf');
       const result = await call({ action: 'export', edits });
+      void trackEvent('tool_completed', 'edit-pdf');
       download(
         new Blob([new Uint8Array(result.output)], {
           type: 'application/pdf',
@@ -410,6 +411,7 @@ export default function VisualPDFEditor() {
       );
       setStatus('Your edited PDF has been downloaded.');
     } catch (e) {
+      void trackEvent('tool_error', 'edit-pdf');
       setError((e as Error).message);
     } finally {
       setBusy(false);
@@ -463,7 +465,8 @@ export default function VisualPDFEditor() {
           <FileText size={46} />
           <h3>Start with your PDF</h3>
           <p>
-            Click a word, line or image to change it. Add something new anywhere.
+            Click a word, line or image to change it. Add something new
+            anywhere.
           </p>
           <UploadZone
             accept="application/pdf"

@@ -26,6 +26,41 @@ async function main() {
       : {}),
   });
   try {
+    if (process.argv.includes('--cleanup')) {
+      await c.execute(
+        'DELETE FROM ssinfo_sessions WHERE expires_at<UTC_TIMESTAMP()',
+      );
+      await c.execute(
+        'DELETE FROM ssinfo_password_resets WHERE expires_at<UTC_TIMESTAMP()',
+      );
+      await c.execute(
+        'DELETE FROM ssinfo_rate_limits WHERE expires_at<UTC_TIMESTAMP()',
+      );
+      await c.execute(
+        'DELETE FROM ssinfo_oauth_states WHERE expires_at<UTC_TIMESTAMP()',
+      );
+      const [s] = await c.execute<mysql.RowDataPacket[]>(
+        "SELECT data FROM ssinfo_site_settings WHERE id='general'",
+      );
+      const config =
+        typeof s[0]?.data === 'string' ? JSON.parse(s[0].data) : s[0]?.data;
+      const days = Math.min(
+        365,
+        Math.max(7, Number(config?.retentionDays) || 90),
+      );
+      await c.execute(
+        'DELETE FROM ssinfo_analytics_visits WHERE created_at<DATE_SUB(UTC_TIMESTAMP(),INTERVAL ? DAY)',
+        [days],
+      );
+      await c.execute(
+        'DELETE FROM ssinfo_audit_logs WHERE created_at<DATE_SUB(UTC_TIMESTAMP(),INTERVAL 365 DAY)',
+      );
+      await c.execute(
+        'DELETE FROM ssinfo_api_usage WHERE created_at<DATE_SUB(UTC_TIMESTAMP(),INTERVAL 90 DAY)',
+      );
+      console.log('Expired records cleaned.');
+      return;
+    }
     const [lock] = await c.query<mysql.RowDataPacket[]>(
       "SELECT GET_LOCK('ssinfo_migrations',30) AS acquired",
     );
@@ -208,39 +243,6 @@ async function main() {
       }
       console.log(
         'First administrator created. Remove ADMIN_PASSWORD from the environment.',
-      );
-    }
-    if (process.argv.includes('--cleanup')) {
-      await c.execute(
-        'DELETE FROM ssinfo_sessions WHERE expires_at<UTC_TIMESTAMP()',
-      );
-      await c.execute(
-        'DELETE FROM ssinfo_password_resets WHERE expires_at<UTC_TIMESTAMP()',
-      );
-      await c.execute(
-        'DELETE FROM ssinfo_rate_limits WHERE expires_at<UTC_TIMESTAMP()',
-      );
-      await c.execute(
-        'DELETE FROM ssinfo_oauth_states WHERE expires_at<UTC_TIMESTAMP()',
-      );
-      const [s] = await c.execute<mysql.RowDataPacket[]>(
-        "SELECT data FROM ssinfo_site_settings WHERE id='general'",
-      );
-      const config =
-        typeof s[0]?.data === 'string' ? JSON.parse(s[0].data) : s[0]?.data;
-      const days = Math.min(
-        365,
-        Math.max(7, Number(config?.retentionDays) || 90),
-      );
-      await c.execute(
-        'DELETE FROM ssinfo_analytics_visits WHERE created_at<DATE_SUB(UTC_TIMESTAMP(),INTERVAL ? DAY)',
-        [days],
-      );
-      await c.execute(
-        'DELETE FROM ssinfo_audit_logs WHERE created_at<DATE_SUB(UTC_TIMESTAMP(),INTERVAL 365 DAY)',
-      );
-      await c.execute(
-        'DELETE FROM ssinfo_api_usage WHERE created_at<DATE_SUB(UTC_TIMESTAMP(),INTERVAL 90 DAY)',
       );
     }
     console.log('Database ready. No analytics data was seeded.');

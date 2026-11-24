@@ -1,3 +1,4 @@
+import { trackEvent } from '@/lib/analytics-client';
 export const MAX_FILE_SIZE = 40 * 1024 * 1024;
 export const MAX_TOTAL_SIZE = 100 * 1024 * 1024;
 export function fileSize(n: number) {
@@ -54,6 +55,11 @@ export function download(blob: Blob, name: string) {
   a.href = url;
   a.download = name;
   a.click();
+  // Track the action only; never send the file name, content or download URL.
+  const tool =
+    location.pathname.match(/^\/tools\/([a-z0-9-]+)\/?$/)?.[1] ||
+    (location.pathname === '/converter-tools' ? 'file-converter' : undefined);
+  if (tool) void trackEvent('tool_download', tool);
   setTimeout(() => URL.revokeObjectURL(url), 30000);
 }
 export async function bundle(results: Output[]) {

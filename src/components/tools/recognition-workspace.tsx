@@ -46,7 +46,7 @@ export default function RecognitionWorkspace({
     }
   };
   const run = async () => {
-    void trackEvent('tool_started',tool.slug);
+    void trackEvent('tool_started', tool.slug);
     setBusy(true);
     setError('');
     setText('');
@@ -139,7 +139,9 @@ export default function RecognitionWorkspace({
           await worker.terminate();
         }
       }
+      void trackEvent('tool_completed', tool.slug);
     } catch (e) {
+      void trackEvent('tool_error', tool.slug);
       setError(
         background
           ? 'The local AI model could not run. Check your connection for the initial model download, then try again in a recent Chrome or Edge browser.'

@@ -105,7 +105,7 @@ export default function FileWorkspace({ tool }: { tool: ToolDefinition }) {
     }
   };
   const run = async () => {
-    void trackEvent('tool_started',tool.slug);
+    void trackEvent('tool_started', tool.slug);
     setBusy(true);
     setError('');
     setResults([]);
@@ -136,7 +136,9 @@ export default function FileWorkspace({ tool }: { tool: ToolDefinition }) {
       setResults(output);
       if (output[0]?.blob.type === 'text/plain')
         setText(await output[0].blob.text());
+      void trackEvent('tool_completed', tool.slug);
     } catch (e) {
+      void trackEvent('tool_error', tool.slug);
       setError(friendlyError(e));
     } finally {
       setBusy(false);

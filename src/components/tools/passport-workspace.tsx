@@ -240,12 +240,14 @@ export default function PassportWorkspace({ tool }: { tool: ToolDefinition }) {
             className="button primary full-width"
             disabled={busy || !files.length}
             onClick={async () => {
-              void trackEvent('tool_started',tool.slug);
+              void trackEvent('tool_started', tool.slug);
               setBusy(true);
               setError('');
               try {
                 setResults(await createPassport(files[0], settings, sheet));
+                void trackEvent('tool_completed', tool.slug);
               } catch (e) {
+                void trackEvent('tool_error', tool.slug);
                 setError(friendlyError(e));
               } finally {
                 setBusy(false);

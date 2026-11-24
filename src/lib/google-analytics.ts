@@ -10,10 +10,15 @@ let initialized = false;
 
 export function analyticsAllowed() {
   try {
-    return localStorage.getItem('idea-analytics-consent') !== 'no' &&
+    return (
+      localStorage.getItem('idea-analytics-consent') !== 'no' &&
       navigator.doNotTrack !== '1' &&
-      !(navigator as Navigator & { globalPrivacyControl?: boolean }).globalPrivacyControl;
-  } catch { return false; }
+      !(navigator as Navigator & { globalPrivacyControl?: boolean })
+        .globalPrivacyControl
+    );
+  } catch {
+    return false;
+  }
 }
 
 export function enableGoogleAnalytics() {
@@ -24,11 +29,15 @@ export function enableGoogleAnalytics() {
   initialized = true;
   win.dataLayer = win.dataLayer || [];
   // gtag's queue uses Arguments objects (the Google bootstrap convention).
-  // eslint-disable-next-line prefer-rest-params
-  win.gtag = function () { win.dataLayer!.push(arguments); };
+  win.gtag = function () {
+    // eslint-disable-next-line prefer-rest-params
+    win.dataLayer!.push(arguments);
+  };
   win.gtag('consent', 'default', {
-    analytics_storage: 'granted', ad_storage: 'denied',
-    ad_user_data: 'denied', ad_personalization: 'denied',
+    analytics_storage: 'granted',
+    ad_storage: 'denied',
+    ad_user_data: 'denied',
+    ad_personalization: 'denied',
   });
   win.gtag('js', new Date());
   // Enhanced Measurement owns initial and history-based page views. Do not
@@ -48,7 +57,10 @@ export function disableGoogleAnalytics(clearCookies = false) {
   (window as AnalyticsWindow)[disableKey] = true;
   if (!clearCookies) return;
   const parts = location.hostname.split('.');
-  const domains = ['', ...parts.map((_, index) => `.${parts.slice(index).join('.')}`)];
+  const domains = [
+    '',
+    ...parts.map((_, index) => `.${parts.slice(index).join('.')}`),
+  ];
   for (const cookie of document.cookie.split(';')) {
     const name = cookie.trim().split('=')[0];
     if (name !== '_ga' && !name.startsWith('_ga_')) continue;
@@ -58,9 +70,25 @@ export function disableGoogleAnalytics(clearCookies = false) {
   }
 }
 
-export function trackGoogleTool(tool?: string) {
-  if (!analyticsAllowed() || !tool || !/^[a-z0-9-]+$/.test(tool) || location.pathname.startsWith('/admin')) return;
+export type ToolEvent =
+  | 'tool_started'
+  | 'tool_completed'
+  | 'tool_error'
+  | 'tool_cancelled'
+  | 'tool_download';
+
+export function trackGoogleTool(
+  tool?: string,
+  event: ToolEvent = 'tool_started',
+) {
+  if (
+    !analyticsAllowed() ||
+    !tool ||
+    !/^[a-z0-9-]+$/.test(tool) ||
+    location.pathname.startsWith('/admin')
+  )
+    return;
   const win = window as AnalyticsWindow;
   if (win[disableKey] || !initialized) return;
-  win.gtag?.('event', 'tool_started', { tool_id: tool });
+  win.gtag?.('event', event, { tool_id: tool });
 }
